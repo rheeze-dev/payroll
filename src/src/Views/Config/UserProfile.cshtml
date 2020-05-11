@@ -1,0 +1,89 @@
+﻿@model src.Models.ApplicationUser
+@inject UserManager<ApplicationUser> UserManager
+@inject src.Data.ApplicationDbContext Context
+@{
+    ViewData["Title"] = "UserProfile";
+    ApplicationUser appUser = await UserManager.GetUserAsync(User);
+    @if (appUser.Role == "Employee")
+    {
+        Layout = "~/Views/Shared/_LayoutAdminlteEmployee.cshtml";
+    }
+     else if (appUser.Role == "Admin")
+    {
+        Layout = "~/Views/Shared/_LayoutAdminlteAdmin.cshtml";
+    }
+    else if (appUser.Role == "Manager")
+    {
+        Layout = "~/Views/Shared/_LayoutAdminlteManager.cshtml";
+    }
+}
+
+<!-- Main content -->
+<section class="content">
+    <div class="row">
+
+        <!-- /.col -->
+        <div class="col-md-12">
+            <div class="nav-tabs-custom">
+                <ul class="nav nav-tabs">
+
+                    <li class="active"><a href="#editProfile" data-toggle="tab">Edit Profile</a></li>
+                    <li><a href="#changePassword" data-toggle="tab">Change Password</a></li>
+                </ul>
+                <div class="tab-content">
+
+                    <!-- /.tab-pane -->
+                    <div class="active tab-pane" id="editProfile">
+                        <div class="small-box bg-green">
+                            <div class="inner">
+                                <h4>Change Your Personal Profile Data</h4>
+
+                            </div>
+                            <div class="icon">
+                                <i class="ion ion-person"></i>
+                            </div>
+
+                            <a onclick="ShowPopup('@Url.Action("PersonalProfile","Config")')" class="btn small-box-footer">Open Personal Profile Form <i class="fa fa-gear"></i></a>
+                        </div>
+                    </div>
+                    <!-- /.tab-pane -->
+                    <div class="tab-pane" id="changePassword">
+                        <div class="small-box bg-green">
+                            <div class="inner">
+                                <h4>Change Old Password With The New Password</h4>
+
+                            </div>
+                            <div class="icon">
+                                <i class="ion ion-key"></i>
+                            </div>
+
+                            <a onclick="ShowPopup('@Url.Action("ChangePassword","Manage")')" class="btn small-box-footer">Open Change Password Form <i class="fa fa-gear"></i></a>
+                        </div>
+
+                    </div>
+                    <!-- /.tab-pane -->
+                </div>
+                <!-- /.tab-content -->
+            </div>
+            <!-- /.nav-tabs-custom -->
+        </div>
+        <!-- /.col -->
+    </div>
+    <!-- /.row -->
+</section>
+<!-- /.content -->
+<!--modal placeholder-->
+<div class="modal modal-primary fade" id="modalDefault">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+
+    <script src="~/js/views/config/userprofile.js"></script>
+
+}

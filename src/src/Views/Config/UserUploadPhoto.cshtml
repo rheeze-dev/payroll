@@ -1,0 +1,76 @@
+﻿@model src.Models.ApplicationUser
+@inject src.Data.ApplicationDbContext Context
+@{
+    ViewData["Title"] = "Upload Photo";
+    Layout = "~/Views/Shared/_LayoutAdminlteNoMenu.cshtml";
+}
+
+<!-- Main content -->
+<section class="content">
+    <div class="row">
+        <div class="col-md-12">
+            <!-- Profile Image -->
+            <div class="box box-primary">
+                <div class="box-body box-profile">
+                    <img id="profilePicture" class="profile-user-img img-responsive img-circle" src="../@Model.ProfilePictureUrl" alt="User profile picture">
+                    <h3 class="profile-username text-center"><span class="profile-fullName">@Model.FullName</span></h3>
+                    @if (Model.IsSuperAdmin)
+                    {
+                        <p class="text-muted text-center">Super admin</p>
+                    }
+                    else if (Model.IsAdmin)
+                    {
+                        <p class="text-muted text-center">Admin</p>
+                    }
+                    else if (Model.IsEmployee)
+                    {
+                        <p class="text-muted text-center">Employee</p>
+                    }
+
+
+                    <ul class="list-group list-group-unbordered">
+                        <li class="list-group-item text-center">
+                            <span class="btn btn-success fileinput-button">
+                                <i class="fa fa-camera bg-green"></i>
+                                <span>Select file ...</span>
+                                <!-- The file input field used as target for the file upload widget -->
+                                <input id="fileupload" type="file" name="files" multiple="">
+                            </span>
+
+                        </li>
+                        <li class="list-group-item">
+                            <div id="progress" class="progress">
+                                <div class="progress-bar progress-bar-success"></div>
+                            </div>
+                        </li>
+
+                    </ul>
+
+                </div>
+                <!-- /.box-body -->
+            </div>
+            <!-- /.box -->
+
+        </div>
+        <!-- /.col -->
+        
+        <!-- /.col -->
+    </div>
+    <!-- /.row -->
+</section>
+<!-- /.content -->
+<!--modal placeholder-->
+<div class="modal modal-primary fade" id="modalDefault">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+
+    <script src="~/js/views/config/userprofile.js"></script>
+
+}
