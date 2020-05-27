@@ -74,6 +74,26 @@ namespace src.Controllers.Api
             return Json(new { success = true, message = "Successfully Saved!" });
         }
 
+        // POST: api/Roles/DeactivateUser
+        [HttpPost("DeactivateUser")]
+        public async Task<IActionResult> DeactivateUser(string idNumber)
+        {
+            Employees employees = _context.Employees.Where(x => x.IdNumber == idNumber).FirstOrDefault();
+            {
+                employees.Role = "Inactive";
+            }
+
+            ApplicationUser appUser = _context.ApplicationUser.Where(x => x.IdNumber == idNumber).FirstOrDefault();
+            {
+                appUser.Role = employees.Role;
+            }
+
+            _context.Employees.Update(employees);
+            _context.ApplicationUser.Update(appUser);
+            await _context.SaveChangesAsync();
+            return Json(new { success = true, message = "Account has been Deactivated!" });
+        }
+
         //DELETE: api/Employees/DeleteEmployees
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteEmployees([FromRoute] string id)

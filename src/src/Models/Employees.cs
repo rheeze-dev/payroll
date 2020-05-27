@@ -54,5 +54,8 @@ namespace src.Models
 
         [Display(Name = "Checker")]
         public DateTime? DateTimeChecker { get; set; }
+
+        [Display(Name = "Time in checker")]
+        public DateTime? TimeInChecker { get; set; }
     }
 }

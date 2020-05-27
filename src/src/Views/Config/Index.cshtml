@@ -7,6 +7,10 @@
     {
         Layout = "_LayoutAdminlteEmployee";
     }
+    if (appUser.Role == "Inactive")
+    {
+        Layout = "_LayoutAdminlteInactive";
+    }
     else if (appUser.Role == "Admin")
     {
         Layout = "_LayoutAdminlteAdmin";
@@ -35,7 +39,7 @@
                                             <th class="col-md-1">Id</th>
                                             <th class="col-md-1">Name</th>
                                             <th class="col-md-1">Position</th>
-                                            <th class="col-md-1">Basic pay</th>
+                                            @*<th class="col-md-1">Basic pay</th>*@
                                             <th class="col-md-1">Role</th>
                                             <th class="col-md-1">Days worked</th>
                                         </tr>

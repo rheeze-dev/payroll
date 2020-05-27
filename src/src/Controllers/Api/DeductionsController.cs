@@ -49,6 +49,14 @@ namespace src.Controllers.Api
             return Json(new { data = currentLedger });
         }
 
+        // GET: api/Deductions/GetEmployeeDeductions
+        [HttpGet("GetEmployeeDeductions")]
+        public IActionResult GetEmployeeDeductions([FromRoute]Guid organizationId)
+        {
+            var list = _context.EmployersDeduction.ToList();
+            return Json(new { data = list });
+        }
+
         // GET: api/Deductions/PostDeductions
         [HttpPost]
         public async Task<IActionResult> PostDeductions([FromBody] JObject model)
@@ -82,7 +90,7 @@ namespace src.Controllers.Api
             salaryLedger.Charges1 = Convert.ToInt32(model["Charges1"].ToString());
             salaryLedger.CashOut = Convert.ToInt32(model["CashOut"].ToString());
             salaryLedger.SalaryLoan = Convert.ToInt32(model["SalaryLoan"].ToString());
-            salaryLedger.PaymentPlan = model["PaymentPlan"].ToString();
+            salaryLedger.PaymentPlan = Convert.ToInt32(model["PaymentPlan"].ToString());
             salaryLedger.TotalDeductions = salaryLedger.Charges1 + salaryLedger.AmountTardiness + salaryLedger.CashOut + salaryLedger.SalaryLoan;
             salaryLedger.Editor = info.FullName;
 
@@ -94,6 +102,7 @@ namespace src.Controllers.Api
             currentLedger.SalaryLoan = salaryLedger.SalaryLoan;
             currentLedger.PaymentPlan = salaryLedger.PaymentPlan;
             currentLedger.TotalDeductions = salaryLedger.TotalDeductions;
+            currentLedger.Editor = salaryLedger.Editor;
             _context.CurrentLedger.Update(currentLedger);
 
             await _context.SaveChangesAsync();

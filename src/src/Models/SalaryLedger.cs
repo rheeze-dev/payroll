@@ -85,7 +85,7 @@ namespace src.Models
         public int SalaryLoan { get; set; }
 
         [Display(Name = "Payment plan")]
-        public string PaymentPlan { get; set; }
+        public int? PaymentPlan { get; set; }
 
         [Display(Name = "Loan amount")]
         public double LoanAmount { get; set; }
@@ -118,6 +118,8 @@ namespace src.Models
 
         [Display(Name = "Editor")]
         public string Editor { get; set; }
+
+        public bool SalaryLoanChecker { get; set; }
 
         public bool MidMonth { get; set; }
     }

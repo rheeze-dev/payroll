@@ -36,8 +36,8 @@ namespace src
                 options.Password.RequireDigit = false;
                 options.Password.RequiredLength = 6;
                 options.Password.RequireNonAlphanumeric = false;
-                options.Password.RequireUppercase = false;
-                options.Password.RequireLowercase = false;
+                options.Password.RequireUppercase = true;
+                options.Password.RequireLowercase = true;
                 options.Password.RequiredUniqueChars = 1;
 
                 // Lockout settings
@@ -72,8 +72,8 @@ namespace src
             // Add DI for Dotnetdesk
             services.AddTransient<IDotnetdesk, Dotnetdesk>();
 
-            // Get SendGrid configuration options
-            services.Configure<SendGridOptions>(Configuration.GetSection("SendGridOptions"));
+            //// Get SendGrid configuration options
+            //services.Configure<SendGridOptions>(Configuration.GetSection("SendGridOptions"));
 
             // Get SMTP configuration options
             services.Configure<SmtpOptions>(Configuration.GetSection("SmtpOptions"));

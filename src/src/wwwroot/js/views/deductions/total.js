@@ -1,12 +1,13 @@
 ﻿var popup, dataTable;
-var entity = 'Payslip';
+var entity = 'Deductions';
 var apiurl = '/api/' + entity;
 
 $(document).ready(function () {
+    //alert(entity);
     var organizationId = $('#organizationId').val();
     dataTable = $('#grid').DataTable({
         "ajax": {
-            "url": apiurl + '/' + organizationId,
+            "url": apiurl + '/GetEmployeeDeductions',
             "type": 'GET',
             "datatype": 'json'
         },
@@ -14,36 +15,18 @@ $(document).ready(function () {
         "columns": [
             {
                 "data": function (data) {
-                    var d = new Date(data["dateAndTime"]);
+                    var d = new Date(data["date"]);
                     var output = monthNames[d.getMonth()] + " " + d.getFullYear();
-                    var spanData = "<span style = 'display:none;'> " + data["dateAndTime"] + "</span>";
-                    if (data["dateAndTime"] == null) {
+                    var spanData = "<span style = 'display:none;'> " + data["date"] + "</span>";
+                    if (data["date"] == null) {
                         output = "";
                     }
                     return spanData + output;
                 }
             },
-            {
-                "data": function (data) {
-                    var startMonth = "1st-15th";
-                    var midMonth = "16th-End";
-                    if (data["midMonth"] == false) {
-                        return startMonth;
-                    }
-                    else {
-                        return midMonth;
-                    }
-                }
-            },
-            //{ "data": "midMonth" },
-            { "data": "idNumber" },
-            { "data": "fullName" },
-            {
-                "data": function (data) {
-                    var btnEdit = "<a class='btn btn-default btn-xs' onclick=ShowPopup('/Payslip/AddEditIndex?id=" + data["id"] + "')><i class='fa fa-pencil' title='Edit'></i></a>";
-                    return btnEdit;
-                }
-            }
+            { "data": "sssTotal" },
+            { "data": "philhealthTotal" },
+            { "data": "pagibigTotal" }
         ],
         "language": {
             "emptyTable": "no data found."
@@ -78,7 +61,6 @@ function ShowPopup(url) {
         });
 }
 
-
 function SubmitAddEdit(form) {
     $.validator.unobtrusive.parse(form);
     if ($(form).valid()) {
@@ -107,7 +89,7 @@ function SubmitAddEdit(form) {
 function Delete(id) {
     swal({
         title: "Are you sure want to Delete?",
-        text: "You will not be able to restore the data!",
+        text: "You will not be able to restore the file!",
         type: "warning",
         showCancelButton: true,
         confirmButtonColor: "#dd4b39",
@@ -130,6 +112,7 @@ function Delete(id) {
 
 
 }
+
 
 
 

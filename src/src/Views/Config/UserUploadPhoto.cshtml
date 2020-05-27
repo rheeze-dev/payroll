@@ -14,15 +14,15 @@
                 <div class="box-body box-profile">
                     <img id="profilePicture" class="profile-user-img img-responsive img-circle" src="../@Model.ProfilePictureUrl" alt="User profile picture">
                     <h3 class="profile-username text-center"><span class="profile-fullName">@Model.FullName</span></h3>
-                    @if (Model.IsSuperAdmin)
+                    @if (Model.Role == "Manager")
                     {
-                        <p class="text-muted text-center">Super admin</p>
+                        <p class="text-muted text-center">Manager</p>
                     }
-                    else if (Model.IsAdmin)
+                    else if (Model.Role == "Admin")
                     {
                         <p class="text-muted text-center">Admin</p>
                     }
-                    else if (Model.IsEmployee)
+                    else if (Model.Role == "Employee")
                     {
                         <p class="text-muted text-center">Employee</p>
                     }

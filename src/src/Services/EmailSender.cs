@@ -26,15 +26,15 @@ namespace src.Services
         public Task SendEmailAsync(string email, string subject, string message)
         {
             //send email using sendgrid via dotnetdesk
-            _dotnetdesk.SendEmailBySendGridAsync(_sendGridOptions.SendGridKey, 
-                _sendGridOptions.FromEmail, 
-                _sendGridOptions.FromFullName, 
-                subject, 
-                message, 
-                email).Wait();
+            //_dotnetdesk.SendEmailBySendGridAsync(_sendGridOptions.SendGridKey, 
+            //    _sendGridOptions.FromEmail, 
+            //    _sendGridOptions.FromFullName, 
+            //    subject, 
+            //    message, 
+            //    email).Wait();
 
             //send email using smtp via dotnetdesk. uncomment to use it
-            /*
+
             _dotnetdesk.SendEmailByGmailAsync(_smtpOptions.fromEmail,
                 _smtpOptions.fromFullName,
                 subject,
@@ -46,7 +46,7 @@ namespace src.Services
                 _smtpOptions.smtpHost,
                 _smtpOptions.smtpPort,
                 _smtpOptions.smtpSSL).Wait();
-                */
+
             return Task.CompletedTask;
         }
     }

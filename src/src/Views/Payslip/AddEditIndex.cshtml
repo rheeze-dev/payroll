@@ -2,8 +2,18 @@
 @{
     Layout = null;
 }
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+@inject src.Data.ApplicationDbContext Context
+@{
+    var org = ViewData["org"];
+    ApplicationUser appUser = await UserManager.GetUserAsync(User);
+    var fullName = appUser != null ? appUser.FullName : "Untitled";
+    var profilePicture = appUser != null ? appUser.ProfilePictureUrl : "#";
+    var organization = Context.Organization.Where(x => x.organizationId.Equals(org)).FirstOrDefault();
+    var organizationName = organization != null ? organization.organizationName : "Undefined";
+}
 <style>
-
     .default {
         display: none;
     }
@@ -15,128 +25,278 @@
         border-top: 1px solid #eee;
     }
 </style>
-<div class="modal-header">
-    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-        <span aria-hidden="true">&times;</span>
-    </button>
-    <h4 class="modal-title">Add / Edit Data</h4>
-</div>
-
-<form onsubmit="return SubmitAddEdit(this)">
-    <div class="box-body">
-        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-        <input type="hidden" asp-for="Id" />
-        @*<input type="text" asp-for="IdNumber" />
-        <input type="text" asp-for="FullName" />*@
-        @*<input type="text" asp-for="Email" />*@
-        <div class="row">
-            <div class="form-group col-lg-6">
-                <label asp-for="DateAndTime" class="control-label">Date: </label>
-                <label class="text-warning">@Model.DateAndTime.Value.ToString("MMMM, yyyy")</label>
-            </div>
-            <div class="form-group col-lg-6">
-                <label asp-for="IdNumber" class="control-label">Id: </label>
-                <label class="text-warning">@Model.IdNumber</label>
-            </div>
-        </div>
-        <div class="row">
-            <div class="form-group col-lg-6">
-                <label asp-for="FullName" class="control-label">Full name: </label>
-                <label class="text-warning">@Model.FullName</label>
-            </div>
-            <div class="form-group col-lg-6">
-                <label asp-for="BasicPay" class="control-label">Basic pay: </label>
-                <label class="text-warning">@Model.BasicPay</label>
-            </div>
-        </div><hr />
-        <div class="row">
-            <div class="form-group col-lg-6">
-                <label asp-for="DaysOfWorkBP" class="control-label">Days of work BP: </label>
-                <label class="text-warning">@Model.DaysOfWorkBP</label>
-            </div>
-            <div class="form-group col-lg-6">
-                <label asp-for="TotalAmountBP" class="control-label">Total regular wage: </label>
-                <label class="text-warning">@Model.TotalAmountBP</label>
-            </div>
-        </div>
-        <div class="row">
-            <div class="form-group col-lg-6">
-                <label asp-for="AmountOT" class="control-label">Overtime: </label>
-                <label class="text-warning">@Model.AmountOT</label>
-            </div>
-            <div class="form-group col-lg-6">
-                <label asp-for="AmountSundays" class="control-label">Sundays: </label>
-                <label class="text-warning">@Model.AmountSundays</label>
-            </div>
-        </div>
-        <div class="row">
-            <div class="form-group col-lg-6">
-                <label asp-for="AmountSH" class="control-label">Special holiday: </label>
-                <label class="text-warning">@Model.AmountSH</label>
-            </div>
-            <div class="form-group col-lg-6">
-                <label asp-for="AmountRH" class="control-label">Regular holiday: </label>
-                <label class="text-warning">@Model.AmountRH</label>
-            </div>
-        </div>
-        <div class="row">
-            <div class="form-group col-lg-6">
-                <label asp-for="GrossPayPayslip" class="control-label">GrossPay: </label>
-                <label class="text-warning">@Model.GrossPayPayslip</label>
-            </div>
-            <div class="form-group col-lg-6">
-                <label asp-for="AmountTardiness" class="control-label">Tardiness: </label>
-                <label class="text-warning">@Model.AmountTardiness</label>
-            </div>
-        </div>
-        <div class="row">
-            <div class="form-group col-lg-6">
-                <label asp-for="Charges1" class="control-label">Charges: </label>
-                <label class="text-warning">@Model.Charges1</label>
-            </div>
-            <div class="form-group col-lg-6">
-                <label asp-for="CashOut" class="control-label">CashOut: </label>
-                <label class="text-warning">@Model.CashOut</label>
-            </div>
-        </div>
-        <div class="row">
-            <div class="form-group col-lg-6">
-                <label asp-for="LoanAmount" class="control-label">Salary loan: </label>
-                <label class="text-warning">@Model.LoanAmount</label>
-            </div>
-            <div class="form-group col-lg-6">
-                <label asp-for="PhilHealthEmployee" class="control-label">Phil health: </label>
-                <label class="text-warning">@Model.PhilHealthEmployee</label>
-            </div>
-        </div>
-        <div class="row">
-            <div class="form-group col-lg-6">
-                <label asp-for="PagibigEmployee" class="control-label">Pag-ibig: </label>
-                <label class="text-warning">@Model.PagibigEmployee</label>
-            </div>
-            <div class="form-group col-lg-6">
-                <label asp-for="SSSEmployee" class="control-label">SSS: </label>
-                <label class="text-warning">@Model.SSSEmployee</label>
-            </div>
-        </div><hr />
-        <div class="row">
-            <div class="form-group col-lg-6">
-                <label asp-for="TotalDeductions" class="control-label">TotalDeductions: </label>
-                <label class="text-warning">@Model.TotalDeductions</label>
-            </div>
-            <div class="form-group col-lg-6">
-                <label asp-for="NetAmountPaid" class="control-label">NetAmountPaid: </label>
-                <label class="text-warning">@Model.NetAmountPaid</label>
-            </div>
-        </div>
-
+@if (appUser.Role == "Manager")
+{
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+        <h4 class="modal-title">Payslip</h4>
     </div>
 
-    <div class="box-footer">
-        @*<button type="submit" class="btn btn-primary pull-right"><i class="fa fa-save"></i> Submit</button>*@
-        <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Cancel</button>
+    <form onsubmit="return SubmitAddEdit(this)">
+        <div class="box-body">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Id" />
+            @*<input type="text" asp-for="IdNumber" />
+            <input type="text" asp-for="FullName" />*@
+            @*<input type="text" asp-for="Email" />*@
+            <div class="row">
+                <div class="form-group col-lg-6">
+                    <label asp-for="DateAndTime" class="control-label">Date: </label>
+                    <label class="text-warning">@Model.DateAndTime.Value.ToString("MMMM yyyy")</label>
+                </div>
+                <div class="form-group col-lg-6">
+                    <label asp-for="IdNumber" class="control-label">Id: </label>
+                    <label class="text-warning">@Model.IdNumber</label>
+                </div>
+            </div>
+            <div class="row">
+                <div class="form-group col-lg-6">
+                    <label asp-for="FullName" class="control-label">Full name: </label>
+                    <label class="text-warning">@Model.FullName</label>
+                </div>
+                <div class="form-group col-lg-6">
+                    <label asp-for="BasicPay" class="control-label">Basic pay: </label>
+                    <label class="text-warning">@Model.BasicPay</label>
+                </div>
+            </div><hr />
+            <div class="row">
+                <div class="form-group col-lg-6">
+                    <label asp-for="DaysOfWorkBP" class="control-label">Days of work BP: </label>
+                    <label class="text-warning">@Model.DaysOfWorkBP</label>
+                </div>
+                <div class="form-group col-lg-6">
+                    <label asp-for="TotalAmountBP" class="control-label">Total regular wage: </label>
+                    <label class="text-warning">@Model.TotalAmountBP</label>
+                </div>
+            </div>
+            <div class="row">
+                <div class="form-group col-lg-6">
+                    <label asp-for="AmountOT" class="control-label">Overtime: </label>
+                    <label class="text-warning">@Model.AmountOT</label>
+                </div>
+                <div class="form-group col-lg-6">
+                    <label asp-for="AmountSundays" class="control-label">Sundays: </label>
+                    <label class="text-warning">@Model.AmountSundays</label>
+                </div>
+            </div>
+            <div class="row">
+                <div class="form-group col-lg-6">
+                    <label asp-for="AmountSH" class="control-label">Special holiday: </label>
+                    <label class="text-warning">@Model.AmountSH</label>
+                </div>
+                <div class="form-group col-lg-6">
+                    <label asp-for="AmountRH" class="control-label">Regular holiday: </label>
+                    <label class="text-warning">@Model.AmountRH</label>
+                </div>
+            </div>
+            <div class="row">
+                <div class="form-group col-lg-6">
+                    <label asp-for="GrossPayPayslip" class="control-label">GrossPay: </label>
+                    <label class="text-warning">@Model.GrossPayPayslip</label>
+                </div>
+                <div class="form-group col-lg-6">
+                    <label asp-for="AmountTardiness" class="control-label">Tardiness: </label>
+                    <label class="text-warning">@Model.AmountTardiness</label>
+                </div>
+            </div>
+            <div class="row">
+                <div class="form-group col-lg-6">
+                    <label asp-for="Charges1" class="control-label">Charges: </label>
+                    <label class="text-warning">@Model.Charges1</label>
+                </div>
+                <div class="form-group col-lg-6">
+                    <label asp-for="CashOut" class="control-label">CashOut: </label>
+                    <label class="text-warning">@Model.CashOut</label>
+                </div>
+            </div>
+            <div class="row">
+                <div class="form-group col-lg-6">
+                    <label asp-for="LoanAmount" class="control-label">Salary loan: </label>
+                    <label class="text-warning">@Model.LoanAmount</label>
+                </div>
+                <div class="form-group col-lg-6">
+                    <label asp-for="PhilHealthEmployee" class="control-label">Phil health: </label>
+                    <label class="text-warning">@Model.PhilHealthEmployee</label>
+                </div>
+            </div>
+            <div class="row">
+                <div class="form-group col-lg-6">
+                    <label asp-for="PagibigEmployee" class="control-label">Pag-ibig: </label>
+                    <label class="text-warning">@Model.PagibigEmployee</label>
+                </div>
+                <div class="form-group col-lg-6">
+                    <label asp-for="SSSEmployee" class="control-label">SSS: </label>
+                    <label class="text-warning">@Model.SSSEmployee</label>
+                </div>
+            </div><hr />
+            <div class="row">
+                <div class="form-group col-lg-6">
+                    <label asp-for="TotalDeductions" class="control-label">TotalDeductions: </label>
+                    <label class="text-warning">@Model.TotalDeductions</label>
+                </div>
+                <div class="form-group col-lg-6">
+                    <label asp-for="NetAmountPaid" class="control-label">NetAmountPaid: </label>
+                    <label class="text-warning">@Model.NetAmountPaid</label>
+                </div>
+            </div><hr />
+            <div class="row">
+                <div class="form-group col-lg-6">
+                    <label class="control-label">Employers deduction </label>
+                </div>
+                <div class="form-group col-lg-6">
+                    <label asp-for="PhilHealthEmployer" class="control-label">Phil health: </label>
+                    <label class="text-warning">@Model.PhilHealthEmployer</label>
+                </div>
+            </div>
+            <div class="row">
+                <div class="form-group col-lg-6">
+                    <label asp-for="PagibigEmployer" class="control-label">Pag-ibig: </label>
+                    <label class="text-warning">@Model.PagibigEmployer</label>
+                </div>
+                <div class="form-group col-lg-6">
+                    <label asp-for="SSSEmployer" class="control-label">SSS: </label>
+                    <label class="text-warning">@Model.SSSEmployer</label>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="box-footer">
+            @*<button type="submit" class="btn btn-primary pull-right"><i class="fa fa-save"></i> Submit</button>*@
+            <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Cancel</button>
+        </div>
+
+    </form>
+}
+else
+{
+    <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+        <h4 class="modal-title">Payslip</h4>
     </div>
-</form>
+
+    <form onsubmit="return SubmitAddEdit(this)">
+        <div class="box-body">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Id" />
+            @*<input type="text" asp-for="IdNumber" />
+            <input type="text" asp-for="FullName" />*@
+            @*<input type="text" asp-for="Email" />*@
+            <div class="row">
+                <div class="form-group col-lg-6">
+                    <label asp-for="DateAndTime" class="control-label">Date: </label>
+                    <label class="text-warning">@Model.DateAndTime.Value.ToString("MMMM yyyy")</label>
+                </div>
+                <div class="form-group col-lg-6">
+                    <label asp-for="IdNumber" class="control-label">Id: </label>
+                    <label class="text-warning">@Model.IdNumber</label>
+                </div>
+            </div>
+            <div class="row">
+                <div class="form-group col-lg-6">
+                    <label asp-for="FullName" class="control-label">Full name: </label>
+                    <label class="text-warning">@Model.FullName</label>
+                </div>
+                <div class="form-group col-lg-6">
+                    <label asp-for="BasicPay" class="control-label">Basic pay: </label>
+                    <label class="text-warning">@Model.BasicPay</label>
+                </div>
+            </div><hr />
+            <div class="row">
+                <div class="form-group col-lg-6">
+                    <label asp-for="DaysOfWorkBP" class="control-label">Days of work BP: </label>
+                    <label class="text-warning">@Model.DaysOfWorkBP</label>
+                </div>
+                <div class="form-group col-lg-6">
+                    <label asp-for="TotalAmountBP" class="control-label">Total regular wage: </label>
+                    <label class="text-warning">@Model.TotalAmountBP</label>
+                </div>
+            </div>
+            <div class="row">
+                <div class="form-group col-lg-6">
+                    <label asp-for="AmountOT" class="control-label">Overtime: </label>
+                    <label class="text-warning">@Model.AmountOT</label>
+                </div>
+                <div class="form-group col-lg-6">
+                    <label asp-for="AmountSundays" class="control-label">Sundays: </label>
+                    <label class="text-warning">@Model.AmountSundays</label>
+                </div>
+            </div>
+            <div class="row">
+                <div class="form-group col-lg-6">
+                    <label asp-for="AmountSH" class="control-label">Special holiday: </label>
+                    <label class="text-warning">@Model.AmountSH</label>
+                </div>
+                <div class="form-group col-lg-6">
+                    <label asp-for="AmountRH" class="control-label">Regular holiday: </label>
+                    <label class="text-warning">@Model.AmountRH</label>
+                </div>
+            </div>
+            <div class="row">
+                <div class="form-group col-lg-6">
+                    <label asp-for="GrossPayPayslip" class="control-label">GrossPay: </label>
+                    <label class="text-warning">@Model.GrossPayPayslip</label>
+                </div>
+                <div class="form-group col-lg-6">
+                    <label asp-for="AmountTardiness" class="control-label">Tardiness: </label>
+                    <label class="text-warning">@Model.AmountTardiness</label>
+                </div>
+            </div>
+            <div class="row">
+                <div class="form-group col-lg-6">
+                    <label asp-for="Charges1" class="control-label">Charges: </label>
+                    <label class="text-warning">@Model.Charges1</label>
+                </div>
+                <div class="form-group col-lg-6">
+                    <label asp-for="CashOut" class="control-label">CashOut: </label>
+                    <label class="text-warning">@Model.CashOut</label>
+                </div>
+            </div>
+            <div class="row">
+                <div class="form-group col-lg-6">
+                    <label asp-for="LoanAmount" class="control-label">Salary loan: </label>
+                    <label class="text-warning">@Model.LoanAmount</label>
+                </div>
+                <div class="form-group col-lg-6">
+                    <label asp-for="PhilHealthEmployee" class="control-label">Phil health: </label>
+                    <label class="text-warning">@Model.PhilHealthEmployee</label>
+                </div>
+            </div>
+            <div class="row">
+                <div class="form-group col-lg-6">
+                    <label asp-for="PagibigEmployee" class="control-label">Pag-ibig: </label>
+                    <label class="text-warning">@Model.PagibigEmployee</label>
+                </div>
+                <div class="form-group col-lg-6">
+                    <label asp-for="SSSEmployee" class="control-label">SSS: </label>
+                    <label class="text-warning">@Model.SSSEmployee</label>
+                </div>
+            </div><hr />
+            <div class="row">
+                <div class="form-group col-lg-6">
+                    <label asp-for="TotalDeductions" class="control-label">TotalDeductions: </label>
+                    <label class="text-warning">@Model.TotalDeductions</label>
+                </div>
+                <div class="form-group col-lg-6">
+                    <label asp-for="NetAmountPaid" class="control-label">NetAmountPaid: </label>
+                    <label class="text-warning">@Model.NetAmountPaid</label>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="box-footer">
+            @*<button type="submit" class="btn btn-primary pull-right"><i class="fa fa-save"></i> Submit</button>*@
+            <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Cancel</button>
+        </div>
+
+    </form>
+}
+
 <script>
     Ladda.bind('.btn', { timeout: 1000 });
 </script>

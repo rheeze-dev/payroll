@@ -35,6 +35,8 @@ namespace src.Data
 
         public DbSet<src.Models.CurrentLedger> CurrentLedger { get; set; }
 
+        public DbSet<src.Models.EmployersDeduction> EmployersDeduction { get; set; }
+
         public DbSet<src.Models.ApplicationUser> ApplicationUser { get; set; }
     }
 }

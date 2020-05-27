@@ -11,9 +11,10 @@ using System;
 namespace src.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20200516150126_PaymentPlanUpdate2")]
+    partial class PaymentPlanUpdate2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -365,8 +366,6 @@ namespace src.Migrations
 
                     b.Property<int>("SalaryLoan");
 
-                    b.Property<bool>("SalaryLoanChecker");
-
                     b.Property<double>("TotalAmountBP");
 
                     b.Property<double>("TotalDeductions");
@@ -419,28 +418,6 @@ namespace src.Migrations
                     b.HasKey("IdNumber");
 
                     b.ToTable("Employees");
-                });
-
-            modelBuilder.Entity("src.Models.EmployersDeduction", b =>
-                {
-                    b.Property<string>("Id")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<DateTime>("CreateAt");
-
-                    b.Property<string>("CreateBy");
-
-                    b.Property<DateTime>("Date");
-
-                    b.Property<double>("PagibigTotal");
-
-                    b.Property<double>("PhilhealthTotal");
-
-                    b.Property<double>("SssTotal");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("EmployersDeduction");
                 });
 
             modelBuilder.Entity("src.Models.Organization", b =>
@@ -550,8 +527,6 @@ namespace src.Migrations
                     b.Property<double>("SSSEmployer");
 
                     b.Property<int>("SalaryLoan");
-
-                    b.Property<bool>("SalaryLoanChecker");
 
                     b.Property<double>("TotalAmountBP");
 

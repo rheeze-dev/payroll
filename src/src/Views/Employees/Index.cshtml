@@ -5,7 +5,7 @@
     ApplicationUser appUser = await UserManager.GetUserAsync(User);
     if (appUser.Role == "Employee")
     {
-        Layout = "_LayoutAdminlteEmployees";
+        Layout = "_LayoutAdminlteEmployee";
     }
     else if (appUser.Role == "Admin")
     {

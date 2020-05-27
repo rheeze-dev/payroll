@@ -66,6 +66,7 @@ namespace src.Controllers
         public async Task<IActionResult> Login(LoginViewModel model, string returnUrl = null)
         {
             ViewData["ReturnUrl"] = returnUrl;
+            
             if (ModelState.IsValid)
             {
                 //need to activate email first
@@ -80,11 +81,13 @@ namespace src.Controllers
                 // This doesn't count login failures towards account lockout
                 // To enable password failures to trigger account lockout, set lockoutOnFailure: true
                 var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: false);
+                
                 if (result.Succeeded)
                 {
                     _logger.LogInformation("User logged in.");
                     return RedirectToLocal(returnUrl);
                 }
+                
                 if (result.RequiresTwoFactor)
                 {
                     return RedirectToAction(nameof(LoginWith2fa), new { returnUrl, model.RememberMe });
@@ -322,7 +325,7 @@ namespace src.Controllers
                 var user = new ApplicationUser { UserName = model.Email, IdNumber = model.IdNumber, Email = model.Email,  FullName = model.FullName, Role = model.Role };
                 var now = DateTime.Now;
                 now = new DateTime(now.Year, now.Month, now.Day, 00, 00, 00);
-                var employees = new Employees { Id = user.Id, IdNumber = model.IdNumber, Email = model.Email, FullName = model.FullName, DateTimeChecker = now, Role = model.Role };
+                var employees = new Employees { Id = user.Id, IdNumber = model.IdNumber, Email = model.Email, FullName = model.FullName, DateTimeChecker = now, TimeInChecker = null, Role = model.Role };
                 var salaryLedger = new SalaryLedger { Id = user.Id, IdNumber = model.IdNumber, Email = model.Email, FullName = model.FullName, DateAndTime = DateTime.Now };
                 var currentLedger = new CurrentLedger { Id = user.Id, IdNumber = model.IdNumber, Email = model.Email, FullName = model.FullName, DateAndTime = DateTime.Now };
                 var day = DateTime.Now.Day;
@@ -336,9 +339,26 @@ namespace src.Controllers
                     salaryLedger.MidMonth = false;
                     currentLedger.MidMonth = false;
                 }
+
+                //ApplicationUser currentUsers = _context.ApplicationUser;
+                ApplicationUser currentUsers = _context.ApplicationUser.Where(x => x.IdNumber == user.IdNumber).FirstOrDefault();
+                ApplicationUser currentUsers2 = _context.ApplicationUser.Where(x => x.Email == user.Email).FirstOrDefault();
+
+
+                if (currentUsers != null)
+                {
+                    ViewData["error"] = "Id number is already used!";
+                    return View(model);
+                }
+                if (currentUsers2 != null)
+                {
+                    ViewData["error"] = "Email is already used!";
+                    return View(model);
+                }
                 //user registered using registration screen is SuperAdmin
                 user.IsSuperAdmin = true;
                 var result = await _userManager.CreateAsync(user, model.Password);
+
                 if (result.Succeeded)
                 {
                     _logger.LogInformation("User created a new account with password.");

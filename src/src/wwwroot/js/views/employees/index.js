@@ -19,8 +19,14 @@ $(document).ready(function () {
             { "data": "address" },
             {
                 "data": function (data) {
-                    var btnDelete = "<a class='btn btn-danger btn-xs' style='margin-left:5px' onclick=Delete('" + data["id"] + "')><i class='fa fa-trash' title='Delete'></i></a>";
-                    return btnDelete;
+                    var btnActive = "In active";
+                    var btnInActive = "<a class='btn btn-default btn-xs btnInActive' data-id='" + data["idNumber"] + "'>Deactivate</a>";
+                    if (data["role"] == "Inactive") {
+                        return btnActive;
+                    }
+                    else if (data["role"] == "Employee" || data["role"] == "Admin" || data["role"] == "Manager") {
+                        return btnInActive;
+                    }
                 }
             }
         ],
@@ -28,6 +34,35 @@ $(document).ready(function () {
             "emptyTable": "no data found."
         },
         "lengthChange": false,
+    });
+});
+
+$("#grid").on("click", ".btnInActive", function (e) {
+    e.preventDefault();
+    var idNumber = $(this).attr("data-id");
+    var param = { idNumber: idNumber };
+    swal({
+        title: "Are you sure want to deactivate this account?",
+        //text: "You will not be able to restore the file!",
+        type: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#dd4b39",
+        confirmButtonText: "Yes, deactivate it!",
+        closeOnConfirm: true
+    }, function () {
+        $.ajax({
+            type: 'POST',
+            url: apiurl + '/DeactivateUser',
+            data: param,
+            success: function (data) {
+                if (data.success) {
+                    ShowMessage(data.message);
+                    dataTable.ajax.reload();
+                } else {
+                    ShowMessageError(data.message);
+                }
+            }
+        });
     });
 });
 

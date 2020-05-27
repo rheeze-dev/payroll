@@ -1,16 +1,12 @@
 ﻿<!DOCTYPE html>
 @inject SignInManager<ApplicationUser> SignInManager
 @inject UserManager<ApplicationUser> UserManager
-@inject src.Data.ApplicationDbContext Context
 @{
     var org = ViewData["org"];
     ApplicationUser appUser = await UserManager.GetUserAsync(User);
     var fullName = appUser != null ? appUser.FullName : "Untitled";
     var profilePicture = appUser != null ? appUser.ProfilePictureUrl : "#";
-    var organization = Context.Organization.Where(x => x.organizationId.Equals(org)).FirstOrDefault();
-    var organizationName = organization != null ? organization.organizationName : "Undefined";
 }
-
 <html>
 <head>
     <meta charset="utf-8">
@@ -30,7 +26,6 @@
         <link rel="stylesheet" href="~/lib/sweetalert/sweetalert.css" />
         <!--fontawesome-->
         <link rel="stylesheet" href="~/lib/font-awesome/css/font-awesome.min.css" />
-
     </environment>
     <environment exclude="Development">
         <link rel="stylesheet" href="https://ajax.aspnetcdn.com/ajax/bootstrap/3.3.7/css/bootstrap.min.css"
@@ -58,6 +53,8 @@
     <!-- AdminLTE Skins. Choose a skin from the css/skins
          folder instead of downloading all of them to reduce the load. -->
     <link rel="stylesheet" href="~/adminlte/css/skins/_all-skins.min.css">
+    <!--blueimp file upload-->
+    <link rel="stylesheet" href="~/lib/jQuery-File-Upload-9.21.0/css/jquery.fileupload.css" />
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
     <!--[if lt IE 9]>
@@ -79,6 +76,7 @@
 
 </head>
 <body class="hold-transition skin-blue fixed">
+@*<body class="hold-transition register-page" style="background-image: url('/images/blank3.jpg'); background-size: cover">*@
     <!-- Site wrapper -->
     <div class="wrapper">
         <header class="main-header">
@@ -96,145 +94,46 @@
 
                 <div class="navbar-custom-menu">
                     <ul class="nav navbar-nav">
-               
+
                         <!-- User Account: style can be found in dropdown.less -->
-                        @Html.Partial("_ProfileSignout")
+                        @Html.Partial("_ProfileSignoutInactive")
+
                     </ul>
                 </div>
             </nav>
         </header>
         <!-- =============================================== -->
         <!-- Left side column. contains the sidebar -->
-        <aside class="main-sidebar">
-            <!-- sidebar: style can be found in sidebar.less -->
+        @*<aside class="main-sidebar">
+             sidebar: style can be found in sidebar.less 
             <section class="sidebar">
-                <!-- Sidebar user panel -->
+                 Sidebar user panel 
                 @Html.Partial("_UserPanel")
 
                 @if (appUser != null)
                 {
-                <ul class="sidebar-menu" data-widget="tree">
-                    @if (appUser.Role == "Manager")
-                    {
-                        <li class="header">NAVIGATION BAR</li>
-                        <li class="@Html.IsSelected(controller: "Config", action: "Index")">
-                            <a href="@Url.Action("Index", "Config", new { org = org })">
-                                <i class="fa fa-dashboard"></i> <span>Dashboard</span>
-                            </a>
-                        </li>
-                        <li class="@Html.IsSelected(controller: "TimeClock", action: "Index")">
-                            <a href="@Url.Action("Index", "TimeClock", new { org = org })">
-                                <i class="fa fa-clock-o"></i> <span>Time clock</span>
-                            </a>
-                        </li>
-                        <li class="@Html.IsSelected(controller: "Attendance", action: "Index")">
-                            <a href="@Url.Action("Index", "Attendance", new { org = org })">
-                                <i class="fa fa-calendar"></i> <span>Attendance</span>
-                            </a>
-                        </li>
-                        <li class="@Html.IsSelected(controller: "Deductions", action: "Index")">
-                            <a href="@Url.Action("Index", "Deductions", new { org = org })">
-                                <i class="fa fa-minus-square"></i> <span>Deductions</span>
-                            </a>
-                        </li>
-                        <li class="@Html.IsSelected(controller: "SalaryLedger", action: "Index")">
-                            <a href="@Url.Action("Index", "SalaryLedger", new { org = org })">
-                                <i class="fa fa-calculator"></i> <span>Salary ledger</span>
-                            </a>
-                        </li>
-                        <li class="@Html.IsSelected(controller: "Payslip", action: "Index")">
-                            <a href="@Url.Action("Index", "Payslip", new { org = org })">
-                                <i class="fa fa-money"></i> <span>Payslip</span>
-                            </a>
-                        </li>
-                        <li class="@Html.IsSelected(controller: "EmployersDeduction", action: "Index")">
-                            <a href="@Url.Action("Index", "EmployersDeduction", new { org = org })">
-                                <i class="fa fa-database"></i> <span>Employers total</span>
-                            </a>
-                        </li>
-                        <li class="@Html.IsSelected(controller: "Employees", action: "Index")">
-                            <a href="@Url.Action("Index", "Employees", new { org = org })">
-                                <i class="fa fa-users"></i> <span>Employees</span>
-                            </a>
-                        </li>
-                        <li class="@Html.IsSelected(controller: "Config", action: "UserProfile")">
-                            <a href="@Url.Action("UserProfile", "Config", new { org = org })">
-                                <i class="fa fa-user-circle"></i> <span>My Account</span>
-                            </a>
-                        </li>
-                        <li class="@Html.IsSelected(controller: "Account")">
-                            <a href="@Url.Action("RegisterAdmin", "Account", new { org = org })">
-                                <i class="fa fa-user-plus"></i> <span>Register</span>
-                            </a>
-                        </li>
-                        @*<li class="@Html.IsSelected(controller: "Product")">
-                <a href="@Url.Action("Index", "Product", new { org = org })">
-                    <i class="fa fa-th"></i> <span>Products</span>
-                </a>
-            </li>
-            <li class="@Html.IsSelected(controller: "SupportAgent")">
-                <a href="@Url.Action("Index", "SupportAgent", new { org = org })">
-                    <i class="fa fa-th"></i> <span>Support Agents</span>
-                </a>
-            </li>
-            <li class="@Html.IsSelected(controller: "SupportEngineer")">
-                <a href="@Url.Action("Index", "SupportEngineer", new { org = org })">
-                    <i class="fa fa-th"></i> <span>Support Engineers</span>
-                </a>
-            </li>
-            <li class="@Html.IsSelected(controller: "Ticket")">
-                <a href="@Url.Action("Index", "Ticket", new { org = org })">
-                    <i class="fa fa-th"></i> <span>Ticket</span>
-                </a>
-            </li>*@
-                    }
-                    @*@if (appUser.IsCustomer)
-        {
-            <li class="header">CUSTOMER NAVIGATION</li>
-            <li class="@Html.IsSelected(controller: "Ticket")">
-                <a href="@Url.Action("Customer", "Ticket", new { cust = cust })">
-                    <i class="fa fa-th"></i> <span>Ticket</span>
-                </a>
-            </li>
-        }
-        @if (appUser.IsSupportAgent)
-        {
-            <li class="header">SUPPORT AGENT NAVIGATION</li>
-            <li class="@Html.IsSelected(controller: "Ticket")">
-                <a href="@Url.Action("Index", "Ticket", new { org = org })">
-                    <i class="fa fa-th"></i> <span>Ticket</span>
-                </a>
-            </li>
-        }
-        @if (appUser.IsSupportEngineer)
-        {
-            <li class="header">SUPPORT ENGINEER NAVIGATION</li>
-            <li class="@Html.IsSelected(controller: "Ticket")">
-                <a href="@Url.Action("Index", "Ticket", new { org = org })">
-                    <i class="fa fa-th"></i> <span>Ticket</span>
-                </a>
-            </li>
-        }*@
+                    <ul class="sidebar-menu" data-widget="tree">
 
-                </ul>
+                        <li class="header">NAVIGATION BAR</li>
+                        <li class="@Html.IsSelected(controller: "Config")">
+                            <a href="@Url.Action("UserUploadPhoto", "Config", new { org = org })">
+                                <i class="fa fa-upload"></i> <span>Upload</span>
+                            </a>
+                        </li>
+                    </ul>
                 }
 
-
             </section>
-            <!-- /.sidebar -->
-        </aside>
+             /.sidebar 
+        </aside>*@
         <!-- =============================================== -->
         <!-- Content Wrapper. Contains page content -->
-        <div class="content-wrapper">
-            <div class="register-box">
-                @*<div class="register-logo">
-                </div>*@
-                @RenderBody()
-                <!-- /.form-box -->
-            </div>
+
+        <div class="content-wrapper" style="background-image: url('/images/blank3.jpg'); background-size: cover">
+            @RenderBody()
         </div>
         <!-- /.content-wrapper -->
-        @Html.Partial("_Footer")
+        @*@Html.Partial("_Footer")*@
 
     </div>
     <!-- ./wrapper -->
@@ -280,8 +179,6 @@
         <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.min.js"></script>
     </environment>
 
-    @RenderSection("Scripts", required: false)
-
     <!-- Ladda -->
     <script src="~/lib/ladda/spin.min.js"></script>
     <script src="~/lib/ladda/ladda.min.js"></script>
@@ -292,6 +189,10 @@
     <script src="~/lib/fastclick/lib/fastclick.js"></script>
     <!-- AdminLTE App -->
     <script src="~/adminlte/js/adminlte.min.js"></script>
+    <!--blueimp file upload-->
+    <script src="~/lib/jQuery-File-Upload-9.21.0/js/jquery.fileupload.js"></script>
+
+    @RenderSection("Scripts", required: false)
 
     <script>
         $(document).ready(function () {

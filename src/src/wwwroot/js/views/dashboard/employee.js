@@ -14,7 +14,7 @@ $(document).ready(function () {
             { "data": "idNumber" },
             { "data": "fullName" },
             { "data": "position" },
-            { "data": "basicPay" },
+            //{ "data": "basicPay" },
             { "data": "role" },
             { "data": "totalTimeOut" }
         ],

@@ -97,7 +97,7 @@ namespace src.Controllers.Api
                 Charges2 = Convert.ToInt32(model["Charges2"].ToString()),
                 CashOut = Convert.ToInt32(model["CashOut"].ToString()),
                 SalaryLoan = Convert.ToInt32(model["SalaryLoan"].ToString()),
-                PaymentPlan = model["PaymentPlan"].ToString(),
+                PaymentPlan = Convert.ToInt32(model["PaymentPlan"].ToString()),
                 LoanAmount = Convert.ToInt32(model["LoanAmount"].ToString()),
                 LoanBalance = Convert.ToInt32(model["LoanBalance"].ToString()),
                 TotalDeductions = Convert.ToInt32(model["TotalDeductions"].ToString()),

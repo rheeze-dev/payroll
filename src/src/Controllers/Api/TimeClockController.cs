@@ -56,6 +56,8 @@ namespace src.Controllers.Api
             Employees employees = _context.Employees.Where(x => x.IdNumber == idNumber).FirstOrDefault();
             SalaryLedger currentSalaryLedger = _context.SalaryLedger.Where(x => x.IdNumber == idNumber).OrderByDescending(x => x.DateAndTime).First();
             CurrentLedger currentLedger = _context.CurrentLedger.Where(x => x.IdNumber == idNumber).FirstOrDefault();
+            EmployersDeduction currentEmployersDeduction = _context.EmployersDeduction.OrderByDescending(x => x.Date).FirstOrDefault();
+
             var info = await _userManager.GetUserAsync(User);
             var totalTimeIn = employees.TotalTimeIn;
             employees.Email = employees.Email;
@@ -66,15 +68,24 @@ namespace src.Controllers.Api
                 return Json(new { success = false, message = "Enter basic pay first!" });
             }
 
-            //var checker = employees.DateTimeChecker.Value.AddHours(1);
-            //if (checker > DateTime.Now)
+            //var nextDay = DateTime.Now.AddDays(1);
+            //nextDay = new DateTime(nextDay.Year, nextDay.Month, nextDay.Day, 04, 00, 00);
+            //if (employees.TimeInChecker == null)
             //{
-            //    return Json(new { success = false, message = "Minumum time is 1 hour!" });
+            //    employees.TimeInChecker = nextDay;
+            //    _context.Employees.Update(employees);
             //}
             //else
             //{
-            //    employees.DateTimeChecker = DateTime.Now;
-            //    _context.Employees.Update(employees);
+            //    if (employees.TimeInChecker > DateTime.Now)
+            //    {
+            //        return Json(new { success = false, message = "Cannot time in twice in a day!" });
+            //    }
+            //    else
+            //    {
+            //        employees.TimeInChecker = employees.TimeInChecker.Value.AddDays(1);
+            //        _context.Employees.Update(employees);
+            //    }
             //}
 
             Attendance attendance = new Attendance
@@ -129,6 +140,29 @@ namespace src.Controllers.Api
                 salaryLedger.Id = Guid.NewGuid().ToString("n").Substring(0, 30);
                 salaryLedger.DateAndTime = DateTime.Now;
                 salaryLedger.MidMonth = currentLedger.MidMonth;
+                salaryLedger.SalaryLoanChecker = false;
+
+                if (currentEmployersDeduction == null)
+                {
+                    EmployersDeduction employersDeduction = new EmployersDeduction
+                    {
+                        Id = salaryLedger.Id,
+                        Date = DateTime.Today
+                    };
+
+                    _context.EmployersDeduction.Add(employersDeduction);
+                }
+                else if (currentEmployersDeduction.Date.Month != DateTime.Now.Month)
+                {
+                    EmployersDeduction employersDeduction = new EmployersDeduction
+                    {
+                        Id = salaryLedger.Id,
+                        Date = DateTime.Today
+                    };
+
+                    _context.EmployersDeduction.Add(employersDeduction);
+                }
+
                 if (salaryLedger.MidMonth == true)
                 {
                     salaryLedger.GrossPayPayslip = currentSalaryLedger.GrossPayPayslip;
@@ -137,7 +171,6 @@ namespace src.Controllers.Api
                 {
                     salaryLedger.GrossPayPayslip = 0;
                 }
-                _context.SalaryLedger.Add(salaryLedger);
 
                 currentLedger.BasicPay = salaryLedger.BasicPay;
                 currentLedger.NumberOfMinTardiness = salaryLedger.NumberOfMinTardiness;
@@ -152,15 +185,129 @@ namespace src.Controllers.Api
                 currentLedger.AmountTardiness = salaryLedger.AmountTardiness;
                 currentLedger.TotalDeductions = salaryLedger.TotalDeductions;
                 currentLedger.NetAmountPaid = salaryLedger.NetAmountPaid;
+                currentLedger.SalaryLoanChecker = salaryLedger.SalaryLoanChecker;
+
+                if (currentLedger.SalaryLoanChecker == false)
+                {
+                    if (currentLedger.SalaryLoan != 0)
+                    {
+                        currentLedger.LoanAmount = currentLedger.SalaryLoan / currentLedger.PaymentPlan.Value;
+                        if (currentLedger.LoanBalance == 0)
+                        {
+                            currentLedger.LoanBalance = currentLedger.SalaryLoan - currentLedger.LoanAmount;
+                        }
+                        else if (currentLedger.LoanBalance != 0)
+                        {
+                            var originalBalance = currentLedger.LoanBalance;
+                            currentLedger.LoanBalance = currentLedger.LoanBalance - currentLedger.LoanAmount;
+                            if (currentLedger.LoanBalance <= 10)
+                            {
+                                currentLedger.LoanAmount = originalBalance;
+                                currentLedger.LoanBalance = 0;
+                                currentLedger.SalaryLoan = 0;
+                                currentLedger.PaymentPlan = null;
+                            }
+                        }
+
+                        salaryLedger.LoanAmount = currentLedger.LoanAmount;
+                        salaryLedger.LoanBalance = currentLedger.LoanBalance;
+                        salaryLedger.PaymentPlan = currentLedger.PaymentPlan;
+                        salaryLedger.SalaryLoan = currentLedger.SalaryLoan;
+                        currentLedger.SalaryLoanChecker = true;
+                        salaryLedger.SalaryLoanChecker = currentLedger.SalaryLoanChecker;
+                    }
+                    else if (currentLedger.SalaryLoan == 0)
+                    {
+                        currentLedger.LoanAmount = 0;
+                    }
+
+                }
+
+                _context.SalaryLedger.Add(salaryLedger);
                 _context.CurrentLedger.Update(currentLedger);
+                _context.SalaryLedger.Update(currentSalaryLedger);
             }
             else
             {
                 currentSalaryLedger.NumberOfMinTardiness = currentSalaryLedger.NumberOfMinTardiness + attendance.NumberOfMinTardiness;
-                _context.SalaryLedger.Update(currentSalaryLedger);
 
                 //currentLedger.MidMonth = currentSalaryLedger.MidMonth;
                 currentLedger.NumberOfMinTardiness = currentSalaryLedger.NumberOfMinTardiness;
+
+                if (currentLedger.SalaryLoanChecker == false)
+                {
+                    if (currentLedger.SalaryLoan != 0)
+                    {
+                        currentLedger.LoanAmount = currentLedger.SalaryLoan / currentLedger.PaymentPlan.Value;
+                        if (currentLedger.LoanBalance == 0)
+                        {
+                            currentLedger.LoanBalance = currentLedger.SalaryLoan - currentLedger.LoanAmount;
+                        }
+                        else if (currentLedger.LoanBalance != 0)
+                        {
+                            var originalBalance = currentLedger.LoanBalance;
+                            currentLedger.LoanBalance = currentLedger.LoanBalance - currentLedger.LoanAmount;
+                            if (currentLedger.LoanBalance <= 10)
+                            {
+                                currentLedger.LoanAmount = originalBalance;
+                                currentLedger.LoanBalance = 0;
+                                currentLedger.SalaryLoan = 0;
+                                currentLedger.PaymentPlan = null;
+                            }
+                        }
+
+                        currentSalaryLedger.LoanAmount = currentLedger.LoanAmount;
+                        currentSalaryLedger.LoanBalance = currentLedger.LoanBalance;
+                        currentSalaryLedger.PaymentPlan = currentLedger.PaymentPlan;
+                        currentSalaryLedger.SalaryLoan = currentLedger.SalaryLoan;
+                        currentLedger.SalaryLoanChecker = true;
+                        currentSalaryLedger.SalaryLoanChecker = currentLedger.SalaryLoanChecker;
+                    }
+                    else if (currentLedger.SalaryLoan == 0)
+                    {
+                        currentLedger.LoanAmount = 0;
+                    }
+                }
+
+                if (currentEmployersDeduction == null)
+                {
+                    EmployersDeduction employersDeduction = new EmployersDeduction
+                    {
+                        Id = salaryLedger.Id,
+                        Date = DateTime.Today
+                    };
+
+                    _context.EmployersDeduction.Add(employersDeduction);
+                }
+                else if (currentEmployersDeduction.Date.Month == DateTime.Now.Month)
+                {
+                    currentEmployersDeduction.SssTotal = currentEmployersDeduction.SssTotal;
+                    currentEmployersDeduction.PagibigTotal = currentEmployersDeduction.PagibigTotal;
+                    currentEmployersDeduction.PhilhealthTotal = currentEmployersDeduction.PhilhealthTotal;
+                }
+
+                //var sssTotal = _context.CurrentLedger.Sum(x => x.SSSEmployer);
+
+                //if (currentEmployersDeduction == null)
+                //{
+                //    EmployersDeduction employersDeduction = new EmployersDeduction
+                //    {
+                //        Id = currentLedger.Id,
+                //        Date = DateTime.Now
+                //    };
+
+                //    _context.EmployersDeduction.Add(employersDeduction);
+
+                //}
+                //else
+                //{
+                //    currentEmployersDeduction.SssTotal = sssTotal;
+                //    //employersDeduction.PhilhealthTotal = _context.CurrentLedger.ToList().Sum(x => x.PhilHealthEmployer);
+                //    //employersDeduction.PagibigTotal = _context.CurrentLedger.ToList().Sum(x => x.PagibigEmployer);
+                //    _context.EmployersDeduction.Update(currentEmployersDeduction);
+                //}
+
+                _context.SalaryLedger.Update(currentSalaryLedger);
                 _context.CurrentLedger.Update(currentLedger);
             }
 
@@ -176,6 +323,7 @@ namespace src.Controllers.Api
             SalaryLedger currentSalaryLedger = _context.SalaryLedger.Where(x => x.IdNumber == idNumber).OrderByDescending(x => x.DateAndTime).First();
             CurrentLedger currentLedger = _context.CurrentLedger.Where(x => x.IdNumber == idNumber).FirstOrDefault();
             Attendance attendance = _context.Attendance.Where(x => x.IdNumber == idNumber && x.TimeOut == null).FirstOrDefault();
+            EmployersDeduction currentEmployersDeduction = _context.EmployersDeduction.OrderByDescending(x => x.Date).FirstOrDefault();
             var info = await _userManager.GetUserAsync(User);
             var totalTimeOut = employees.TotalTimeOut;
             employees.TotalTimeOut = totalTimeOut + 1;
@@ -220,6 +368,32 @@ namespace src.Controllers.Api
             currentSalaryLedger.AmountOT = employees.BasicPay.Value * 1.25 / 8 / 60 * currentSalaryLedger.NumberOfMinOT;
             currentSalaryLedger.NumberOfMinSundays = currentSalaryLedger.NumberOfMinSundays + attendance.NumberOfMinSunday;
             currentSalaryLedger.AmountSundays = employees.BasicPay.Value * 1.3 / 8 / 60 * currentSalaryLedger.NumberOfMinSundays;
+            //if (currentSalaryLedger.SalaryLoan == 0)
+            //{
+            //    currentSalaryLedger.LoanAmount = 0;
+            //    //currentSalaryLedger.LoanBalance = 0;
+            //}
+            //else if (currentSalaryLedger.SalaryLoan != 0)
+            //{
+            //    currentSalaryLedger.LoanAmount = currentSalaryLedger.SalaryLoan / currentSalaryLedger.PaymentPlan.Value;
+            //    if (currentSalaryLedger.LoanBalance == 0)
+            //    {
+            //        currentSalaryLedger.LoanBalance = currentSalaryLedger.SalaryLoan - currentSalaryLedger.LoanAmount;
+            //    }
+            //    else if (currentSalaryLedger.LoanBalance != 0)
+            //    {
+            //        currentSalaryLedger.LoanBalance = currentSalaryLedger.LoanBalance - currentSalaryLedger.LoanAmount;
+            //        if (currentLedger.LoanBalance <= currentSalaryLedger.LoanAmount + 1)
+            //        {
+            //            currentSalaryLedger.LoanAmount = currentSalaryLedger.LoanAmount + 1;
+            //            currentSalaryLedger.LoanBalance = 0;
+            //            currentSalaryLedger.SalaryLoan = 0;
+            //            currentSalaryLedger.PaymentPlan = null;
+            //        }
+            //    }
+            //}
+            
+
             currentSalaryLedger.GrossPay = currentSalaryLedger.TotalAmountBP + currentSalaryLedger.AmountOT + currentSalaryLedger.AmountSundays + currentSalaryLedger.AmountRH + currentSalaryLedger.AmountSH;
             currentSalaryLedger.GrossPayPayslip = currentSalaryLedger.GrossPayPayslip + currentSalaryLedger.GrossPay;
             currentSalaryLedger.AmountTardiness = currentSalaryLedger.NumberOfMinTardiness * employees.BasicPay.Value / 8 / 60;
@@ -232,132 +406,132 @@ namespace src.Controllers.Api
                 currentSalaryLedger.PagibigEmployer = 0;
                 currentSalaryLedger.SSSEmployee = 0;
                 currentSalaryLedger.SSSEmployer = 0;
-                currentSalaryLedger.TotalDeductions = currentSalaryLedger.Charges1 + currentSalaryLedger.AmountTardiness + currentSalaryLedger.CashOut + currentSalaryLedger.PhilHealthEmployee + currentSalaryLedger.PagibigEmployee + currentSalaryLedger.SSSEmployee;
+                currentSalaryLedger.TotalDeductions = currentSalaryLedger.Charges1 + currentSalaryLedger.AmountTardiness + currentSalaryLedger.CashOut + currentSalaryLedger.LoanAmount + currentSalaryLedger.PhilHealthEmployee + currentSalaryLedger.PagibigEmployee + currentSalaryLedger.SSSEmployee;
                 currentSalaryLedger.NetAmountPaid = currentSalaryLedger.GrossPay - currentSalaryLedger.TotalDeductions;
             }
             else
             {
-            if (currentSalaryLedger.GrossPay <= 10000)
+            if (currentSalaryLedger.GrossPayPayslip <= 10000)
             {
                 currentSalaryLedger.PhilHealthEmployee = (137.50);
             }
-            else if (currentSalaryLedger.GrossPay <= 11000)
+            else if (currentSalaryLedger.GrossPayPayslip <= 11000)
             {
                 currentSalaryLedger.PhilHealthEmployee = (151.25);
             }
-            else if (currentSalaryLedger.GrossPay <= 12000)
+            else if (currentSalaryLedger.GrossPayPayslip <= 12000)
             {
                 currentSalaryLedger.PhilHealthEmployee = (165);
             }
-            else if (currentSalaryLedger.GrossPay <= 13000)
+            else if (currentSalaryLedger.GrossPayPayslip <= 13000)
             {
                 currentSalaryLedger.PhilHealthEmployee = (178.75);
             }
-            else if (currentSalaryLedger.GrossPay <= 14000)
+            else if (currentSalaryLedger.GrossPayPayslip <= 14000)
             {
                 currentSalaryLedger.PhilHealthEmployee = (192.50);
             }
-            else if (currentSalaryLedger.GrossPay <= 15000)
+            else if (currentSalaryLedger.GrossPayPayslip <= 15000)
             {
                 currentSalaryLedger.PhilHealthEmployee = (206.25);
             }
-            else if (currentSalaryLedger.GrossPay <= 16000)
+            else if (currentSalaryLedger.GrossPayPayslip <= 16000)
             {
                 currentSalaryLedger.PhilHealthEmployee = (220);
             }
-            else if (currentSalaryLedger.GrossPay <= 17000)
+            else if (currentSalaryLedger.GrossPayPayslip <= 17000)
             {
                 currentSalaryLedger.PhilHealthEmployee = (233.75);
             }
-            else if (currentSalaryLedger.GrossPay <= 18000)
+            else if (currentSalaryLedger.GrossPayPayslip <= 18000)
             {
                 currentSalaryLedger.PhilHealthEmployee = (247.50);
             }
-            else if (currentSalaryLedger.GrossPay <= 19000)
+            else if (currentSalaryLedger.GrossPayPayslip <= 19000)
             {
                 currentSalaryLedger.PhilHealthEmployee = (261.25);
             }
-            else if (currentSalaryLedger.GrossPay <= 20000)
+            else if (currentSalaryLedger.GrossPayPayslip <= 20000)
             {
                 currentSalaryLedger.PhilHealthEmployee = (275);
             }
-            else if (currentSalaryLedger.GrossPay <= 21000)
+            else if (currentSalaryLedger.GrossPayPayslip <= 21000)
             {
                 currentSalaryLedger.PhilHealthEmployee = (288.75);
             }
-            else if (currentSalaryLedger.GrossPay <= 22000)
+            else if (currentSalaryLedger.GrossPayPayslip <= 22000)
             {
                 currentSalaryLedger.PhilHealthEmployee = (302.50);
             }
-            else if (currentSalaryLedger.GrossPay <= 23000)
+            else if (currentSalaryLedger.GrossPayPayslip <= 23000)
             {
                 currentSalaryLedger.PhilHealthEmployee = (316.25);
             }
-            else if (currentSalaryLedger.GrossPay <= 24000)
+            else if (currentSalaryLedger.GrossPayPayslip <= 24000)
             {
                 currentSalaryLedger.PhilHealthEmployee = (330);
             }
-            else if (currentSalaryLedger.GrossPay <= 25000)
+            else if (currentSalaryLedger.GrossPayPayslip <= 25000)
             {
                 currentSalaryLedger.PhilHealthEmployee = (343.75);
             }
-            else if (currentSalaryLedger.GrossPay <= 26000)
+            else if (currentSalaryLedger.GrossPayPayslip <= 26000)
             {
                 currentSalaryLedger.PhilHealthEmployee = (357.50);
             }
-            else if (currentSalaryLedger.GrossPay <= 27000)
+            else if (currentSalaryLedger.GrossPayPayslip <= 27000)
             {
                 currentSalaryLedger.PhilHealthEmployee = (371.25);
             }
-            else if (currentSalaryLedger.GrossPay <= 28000)
+            else if (currentSalaryLedger.GrossPayPayslip <= 28000)
             {
                 currentSalaryLedger.PhilHealthEmployee = (385);
             }
-            else if (currentSalaryLedger.GrossPay <= 29000)
+            else if (currentSalaryLedger.GrossPayPayslip <= 29000)
             {
                 currentSalaryLedger.PhilHealthEmployee = (398.75);
             }
-            else if (currentSalaryLedger.GrossPay <= 30000)
+            else if (currentSalaryLedger.GrossPayPayslip <= 30000)
             {
                 currentSalaryLedger.PhilHealthEmployee = (412.50);
             }
-            else if (currentSalaryLedger.GrossPay <= 31000)
+            else if (currentSalaryLedger.GrossPayPayslip <= 31000)
             {
                 currentSalaryLedger.PhilHealthEmployee = (426.25);
             }
-            else if (currentSalaryLedger.GrossPay <= 32000)
+            else if (currentSalaryLedger.GrossPayPayslip <= 32000)
             {
                 currentSalaryLedger.PhilHealthEmployee = (440);
             }
-            else if (currentSalaryLedger.GrossPay <= 33000)
+            else if (currentSalaryLedger.GrossPayPayslip <= 33000)
             {
                 currentSalaryLedger.PhilHealthEmployee = (453.75);
             }
-            else if (currentSalaryLedger.GrossPay <= 34000)
+            else if (currentSalaryLedger.GrossPayPayslip <= 34000)
             {
                 currentSalaryLedger.PhilHealthEmployee = (467.50);
             }
-            else if (currentSalaryLedger.GrossPay <= 35000)
+            else if (currentSalaryLedger.GrossPayPayslip <= 35000)
             {
                 currentSalaryLedger.PhilHealthEmployee = (481.25);
             }
-            else if (currentSalaryLedger.GrossPay <= 36000)
+            else if (currentSalaryLedger.GrossPayPayslip <= 36000)
             {
                 currentSalaryLedger.PhilHealthEmployee = (495);
             }
-            else if (currentSalaryLedger.GrossPay <= 37000)
+            else if (currentSalaryLedger.GrossPayPayslip <= 37000)
             {
                 currentSalaryLedger.PhilHealthEmployee = (508.75);
             }
-            else if (currentSalaryLedger.GrossPay <= 38000)
+            else if (currentSalaryLedger.GrossPayPayslip <= 38000)
             {
                 currentSalaryLedger.PhilHealthEmployee = (522.50);
             }
-            else if (currentSalaryLedger.GrossPay <= 39000)
+            else if (currentSalaryLedger.GrossPayPayslip <= 39000)
             {
                 currentSalaryLedger.PhilHealthEmployee = (536.25);
             }
-            else if (currentSalaryLedger.GrossPay <= 39999.99)
+            else if (currentSalaryLedger.GrossPayPayslip <= 39999.99)
             {
                 currentSalaryLedger.PhilHealthEmployee = (543.13);
             }
@@ -367,7 +541,7 @@ namespace src.Controllers.Api
             }
             currentSalaryLedger.PhilHealthEmployer = currentSalaryLedger.PhilHealthEmployee;
 
-            if (currentSalaryLedger.GrossPay <= 1500)
+            if (currentSalaryLedger.GrossPayPayslip <= 1500)
             {
                 currentSalaryLedger.PagibigEmployer = currentSalaryLedger.GrossPay * .02;
             }
@@ -376,7 +550,7 @@ namespace src.Controllers.Api
                 currentSalaryLedger.PagibigEmployer = currentSalaryLedger.GrossPay * .02;
             }
 
-            if (currentSalaryLedger.GrossPay <= 1500)
+            if (currentSalaryLedger.GrossPayPayslip <= 1500)
             {
                 currentSalaryLedger.PagibigEmployee = currentSalaryLedger.GrossPay * .01;
             }
@@ -385,127 +559,127 @@ namespace src.Controllers.Api
                 currentSalaryLedger.PagibigEmployee = currentSalaryLedger.GrossPay * .02;
             }
 
-            if (currentSalaryLedger.GrossPay <= 999)
+            if (currentSalaryLedger.GrossPayPayslip <= 999)
             {
                 currentSalaryLedger.SSSEmployer = 0;
             }
-            else if (currentSalaryLedger.GrossPay <= 1249.99)
+            else if (currentSalaryLedger.GrossPayPayslip <= 1249.99)
             {
                 currentSalaryLedger.SSSEmployer = (83.70);
             }
-            else if (currentSalaryLedger.GrossPay <= 1749.99)
+            else if (currentSalaryLedger.GrossPayPayslip <= 1749.99)
             {
                 currentSalaryLedger.SSSEmployer = (120.50);
             }
-            else if (currentSalaryLedger.GrossPay <= 2249.99)
+            else if (currentSalaryLedger.GrossPayPayslip <= 2249.99)
             {
                 currentSalaryLedger.SSSEmployer = (157.30);
             }
-            else if (currentSalaryLedger.GrossPay <= 2749.99)
+            else if (currentSalaryLedger.GrossPayPayslip <= 2749.99)
             {
                 currentSalaryLedger.SSSEmployer = (194.20);
             }
-            else if (currentSalaryLedger.GrossPay <= 3249.99)
+            else if (currentSalaryLedger.GrossPayPayslip <= 3249.99)
             {
                 currentSalaryLedger.SSSEmployer = (231);
             }
-            else if (currentSalaryLedger.GrossPay <= 3749.99)
+            else if (currentSalaryLedger.GrossPayPayslip <= 3749.99)
             {
                 currentSalaryLedger.SSSEmployer = (267.80);
             }
-            else if (currentSalaryLedger.GrossPay <= 4249.99)
+            else if (currentSalaryLedger.GrossPayPayslip <= 4249.99)
             {
                 currentSalaryLedger.SSSEmployer = (304.70);
             }
-            else if (currentSalaryLedger.GrossPay <= 4749.99)
+            else if (currentSalaryLedger.GrossPayPayslip <= 4749.99)
             {
                 currentSalaryLedger.SSSEmployer = (341.50);
             }
-            else if (currentSalaryLedger.GrossPay <= 5249.99)
+            else if (currentSalaryLedger.GrossPayPayslip <= 5249.99)
             {
                 currentSalaryLedger.SSSEmployer = (378.30);
             }
-            else if (currentSalaryLedger.GrossPay <= 5749.99)
+            else if (currentSalaryLedger.GrossPayPayslip <= 5749.99)
             {
                 currentSalaryLedger.SSSEmployer = (415.20);
             }
-            else if (currentSalaryLedger.GrossPay <= 6249.99)
+            else if (currentSalaryLedger.GrossPayPayslip <= 6249.99)
             {
                 currentSalaryLedger.SSSEmployer = (452);
             }
-            else if (currentSalaryLedger.GrossPay <= 6749.99)
+            else if (currentSalaryLedger.GrossPayPayslip <= 6749.99)
             {
                 currentSalaryLedger.SSSEmployer = (488.80);
             }
-            else if (currentSalaryLedger.GrossPay <= 7249.99)
+            else if (currentSalaryLedger.GrossPayPayslip <= 7249.99)
             {
                 currentSalaryLedger.SSSEmployer = (525.70);
             }
-            else if (currentSalaryLedger.GrossPay <= 7749.99)
+            else if (currentSalaryLedger.GrossPayPayslip <= 7749.99)
             {
                 currentSalaryLedger.SSSEmployer = (562.50);
             }
-            else if (currentSalaryLedger.GrossPay <= 8249.99)
+            else if (currentSalaryLedger.GrossPayPayslip <= 8249.99)
             {
                 currentSalaryLedger.SSSEmployer = (599.30);
             }
-            else if (currentSalaryLedger.GrossPay <= 8749.99)
+            else if (currentSalaryLedger.GrossPayPayslip <= 8749.99)
             {
                 currentSalaryLedger.SSSEmployer = (636.20);
             }
-            else if (currentSalaryLedger.GrossPay <= 9249.99)
+            else if (currentSalaryLedger.GrossPayPayslip <= 9249.99)
             {
                 currentSalaryLedger.SSSEmployer = (673);
             }
-            else if (currentSalaryLedger.GrossPay <= 9749.99)
+            else if (currentSalaryLedger.GrossPayPayslip <= 9749.99)
             {
                 currentSalaryLedger.SSSEmployer = (709.80);
             }
-            else if (currentSalaryLedger.GrossPay <= 10249.99)
+            else if (currentSalaryLedger.GrossPayPayslip <= 10249.99)
             {
                 currentSalaryLedger.SSSEmployer = (746.70);
             }
-            else if (currentSalaryLedger.GrossPay <= 10749.99)
+            else if (currentSalaryLedger.GrossPayPayslip <= 10749.99)
             {
                 currentSalaryLedger.SSSEmployer = (783.50);
             }
-            else if (currentSalaryLedger.GrossPay <= 11249.99)
+            else if (currentSalaryLedger.GrossPayPayslip <= 11249.99)
             {
                 currentSalaryLedger.SSSEmployer = (820.30);
             }
-            else if (currentSalaryLedger.GrossPay <= 11749.99)
+            else if (currentSalaryLedger.GrossPayPayslip <= 11749.99)
             {
                 currentSalaryLedger.SSSEmployer = (857.20);
             }
-            else if (currentSalaryLedger.GrossPay <= 12249.99)
+            else if (currentSalaryLedger.GrossPayPayslip <= 12249.99)
             {
                 currentSalaryLedger.SSSEmployer = (894);
             }
-            else if (currentSalaryLedger.GrossPay <= 12749.99)
+            else if (currentSalaryLedger.GrossPayPayslip <= 12749.99)
             {
                 currentSalaryLedger.SSSEmployer = (930.80);
             }
-            else if (currentSalaryLedger.GrossPay <= 13249.99)
+            else if (currentSalaryLedger.GrossPayPayslip <= 13249.99)
             {
                 currentSalaryLedger.SSSEmployer = (967.70);
             }
-            else if (currentSalaryLedger.GrossPay <= 13749.99)
+            else if (currentSalaryLedger.GrossPayPayslip <= 13749.99)
             {
                 currentSalaryLedger.SSSEmployer = (1004.50);
             }
-            else if (currentSalaryLedger.GrossPay <= 14249.99)
+            else if (currentSalaryLedger.GrossPayPayslip <= 14249.99)
             {
                 currentSalaryLedger.SSSEmployer = (1041.30);
             }
-            else if (currentSalaryLedger.GrossPay <= 14749.99)
+            else if (currentSalaryLedger.GrossPayPayslip <= 14749.99)
             {
                 currentSalaryLedger.SSSEmployer = (1078.20);
             }
-            else if (currentSalaryLedger.GrossPay <= 15249.99)
+            else if (currentSalaryLedger.GrossPayPayslip <= 15249.99)
             {
                 currentSalaryLedger.SSSEmployer = (1135);
             }
-            else if (currentSalaryLedger.GrossPay <= 15749.99)
+            else if (currentSalaryLedger.GrossPayPayslip <= 15749.99)
             {
                 currentSalaryLedger.SSSEmployer = (1171.80);
             }
@@ -514,127 +688,127 @@ namespace src.Controllers.Api
                 currentSalaryLedger.SSSEmployer = (1208.70);
             }
 
-            if (currentSalaryLedger.GrossPay <= 999)
+            if (currentSalaryLedger.GrossPayPayslip <= 999)
             {
                 currentSalaryLedger.SSSEmployee = (0);
             }
-            else if (currentSalaryLedger.GrossPay <= 1249.99)
+            else if (currentSalaryLedger.GrossPayPayslip <= 1249.99)
             {
                 currentSalaryLedger.SSSEmployee = (36.30);
             }
-            else if (currentSalaryLedger.GrossPay <= 1749.99)
+            else if (currentSalaryLedger.GrossPayPayslip <= 1749.99)
             {
                 currentSalaryLedger.SSSEmployee = (54.50);
             }
-            else if (currentSalaryLedger.GrossPay <= 2249.99)
+            else if (currentSalaryLedger.GrossPayPayslip <= 2249.99)
             {
                 currentSalaryLedger.SSSEmployee = (72.70);
             }
-            else if (currentSalaryLedger.GrossPay <= 2749.99)
+            else if (currentSalaryLedger.GrossPayPayslip <= 2749.99)
             {
                 currentSalaryLedger.SSSEmployee = (90.80);
             }
-            else if (currentSalaryLedger.GrossPay <= 3249.99)
+            else if (currentSalaryLedger.GrossPayPayslip <= 3249.99)
             {
                 currentSalaryLedger.SSSEmployee = (109);
             }
-            else if (currentSalaryLedger.GrossPay <= 3749.99)
+            else if (currentSalaryLedger.GrossPayPayslip <= 3749.99)
             {
                 currentSalaryLedger.SSSEmployee = (127.20);
             }
-            else if (currentSalaryLedger.GrossPay <= 4249.99)
+            else if (currentSalaryLedger.GrossPayPayslip <= 4249.99)
             {
                 currentSalaryLedger.SSSEmployee = (145.30);
             }
-            else if (currentSalaryLedger.GrossPay <= 4749.99)
+            else if (currentSalaryLedger.GrossPayPayslip <= 4749.99)
             {
                 currentSalaryLedger.SSSEmployee = (163.50);
             }
-            else if (currentSalaryLedger.GrossPay <= 5249.99)
+            else if (currentSalaryLedger.GrossPayPayslip <= 5249.99)
             {
                 currentSalaryLedger.SSSEmployee = (181.70);
             }
-            else if (currentSalaryLedger.GrossPay <= 5749.99)
+            else if (currentSalaryLedger.GrossPayPayslip <= 5749.99)
             {
                 currentSalaryLedger.SSSEmployee = (199.80);
             }
-            else if (currentSalaryLedger.GrossPay <= 6249.99)
+            else if (currentSalaryLedger.GrossPayPayslip <= 6249.99)
             {
                 currentSalaryLedger.SSSEmployee = (218);
             }
-            else if (currentSalaryLedger.GrossPay <= 6749.99)
+            else if (currentSalaryLedger.GrossPayPayslip <= 6749.99)
             {
                 currentSalaryLedger.SSSEmployee = (236.20);
             }
-            else if (currentSalaryLedger.GrossPay <= 7249.99)
+            else if (currentSalaryLedger.GrossPayPayslip <= 7249.99)
             {
                 currentSalaryLedger.SSSEmployee = (254.30);
             }
-            else if (currentSalaryLedger.GrossPay <= 7749.99)
+            else if (currentSalaryLedger.GrossPayPayslip <= 7749.99)
             {
                 currentSalaryLedger.SSSEmployee = (272.50);
             }
-            else if (currentSalaryLedger.GrossPay <= 8249.99)
+            else if (currentSalaryLedger.GrossPayPayslip <= 8249.99)
             {
                 currentSalaryLedger.SSSEmployee = (290.70);
             }
-            else if (currentSalaryLedger.GrossPay <= 8749.99)
+            else if (currentSalaryLedger.GrossPayPayslip <= 8749.99)
             {
                 currentSalaryLedger.SSSEmployee = (308.80);
             }
-            else if (currentSalaryLedger.GrossPay <= 9249.99)
+            else if (currentSalaryLedger.GrossPayPayslip <= 9249.99)
             {
                 currentSalaryLedger.SSSEmployee = (327);
             }
-            else if (currentSalaryLedger.GrossPay <= 9749.99)
+            else if (currentSalaryLedger.GrossPayPayslip <= 9749.99)
             {
                 currentSalaryLedger.SSSEmployee = (345.20);
             }
-            else if (currentSalaryLedger.GrossPay <= 10249.99)
+            else if (currentSalaryLedger.GrossPayPayslip <= 10249.99)
             {
                 currentSalaryLedger.SSSEmployee = (363.30);
             }
-            else if (currentSalaryLedger.GrossPay <= 10749.99)
+            else if (currentSalaryLedger.GrossPayPayslip <= 10749.99)
             {
                 currentSalaryLedger.SSSEmployee = (381.50);
             }
-            else if (currentSalaryLedger.GrossPay <= 11249.99)
+            else if (currentSalaryLedger.GrossPayPayslip <= 11249.99)
             {
                 currentSalaryLedger.SSSEmployee = (399.70);
             }
-            else if (currentSalaryLedger.GrossPay <= 11749.99)
+            else if (currentSalaryLedger.GrossPayPayslip <= 11749.99)
             {
                 currentSalaryLedger.SSSEmployee = (417.80);
             }
-            else if (currentSalaryLedger.GrossPay <= 12249.99)
+            else if (currentSalaryLedger.GrossPayPayslip <= 12249.99)
             {
                 currentSalaryLedger.SSSEmployee = (436);
             }
-            else if (currentSalaryLedger.GrossPay <= 12749.99)
+            else if (currentSalaryLedger.GrossPayPayslip <= 12749.99)
             {
                 currentSalaryLedger.SSSEmployee = (454.20);
             }
-            else if (currentSalaryLedger.GrossPay <= 13249.99)
+            else if (currentSalaryLedger.GrossPayPayslip <= 13249.99)
             {
                 currentSalaryLedger.SSSEmployee = (472.30);
             }
-            else if (currentSalaryLedger.GrossPay <= 13749.99)
+            else if (currentSalaryLedger.GrossPayPayslip <= 13749.99)
             {
                 currentSalaryLedger.SSSEmployee = (490.50);
             }
-            else if (currentSalaryLedger.GrossPay <= 14249.99)
+            else if (currentSalaryLedger.GrossPayPayslip <= 14249.99)
             {
                 currentSalaryLedger.SSSEmployee = (508.70);
             }
-            else if (currentSalaryLedger.GrossPay <= 14749.99)
+            else if (currentSalaryLedger.GrossPayPayslip <= 14749.99)
             {
                 currentSalaryLedger.SSSEmployee = (526.80);
             }
-            else if (currentSalaryLedger.GrossPay <= 15249.99)
+            else if (currentSalaryLedger.GrossPayPayslip <= 15249.99)
             {
                 currentSalaryLedger.SSSEmployee = (545);
             }
-            else if (currentSalaryLedger.GrossPay <= 15749.99)
+            else if (currentSalaryLedger.GrossPayPayslip <= 15749.99)
             {
                 currentSalaryLedger.SSSEmployee = (563.20);
             }
@@ -643,11 +817,9 @@ namespace src.Controllers.Api
                 currentSalaryLedger.SSSEmployee = (581.30);
             }
 
-                currentSalaryLedger.TotalDeductions = currentSalaryLedger.Charges1 + currentSalaryLedger.AmountTardiness + currentSalaryLedger.CashOut + currentSalaryLedger.PhilHealthEmployee + currentSalaryLedger.PagibigEmployee + currentSalaryLedger.SSSEmployee;
-                currentSalaryLedger.NetAmountPaid = currentSalaryLedger.GrossPayPayslip - currentSalaryLedger.TotalDeductions;
+                currentSalaryLedger.TotalDeductions = currentSalaryLedger.Charges1 + currentSalaryLedger.AmountTardiness + currentSalaryLedger.CashOut + currentSalaryLedger.LoanAmount + currentSalaryLedger.PhilHealthEmployee + currentSalaryLedger.PagibigEmployee + currentSalaryLedger.SSSEmployee;
+                currentSalaryLedger.NetAmountPaid = currentSalaryLedger.GrossPay - currentSalaryLedger.TotalDeductions;
             }
-
-            _context.SalaryLedger.Update(currentSalaryLedger);
 
             currentLedger.NumberOfMinTardiness = currentSalaryLedger.NumberOfMinTardiness;
             currentLedger.DaysOfWorkBP = currentSalaryLedger.DaysOfWorkBP;
@@ -668,7 +840,20 @@ namespace src.Controllers.Api
             currentLedger.PagibigEmployer = currentSalaryLedger.PagibigEmployer;
             currentLedger.SSSEmployee = currentSalaryLedger.SSSEmployee;
             currentLedger.SSSEmployer = currentSalaryLedger.SSSEmployer;
+
             _context.CurrentLedger.Update(currentLedger);
+            await _context.SaveChangesAsync();
+
+            var sssTotal = _context.CurrentLedger.Sum(x => x.SSSEmployer);
+            var philhealthTotal = _context.CurrentLedger.Sum(x => x.PhilHealthEmployer);
+            var pagibigTotal = _context.CurrentLedger.Sum(x => x.PagibigEmployer);
+
+            currentEmployersDeduction.SssTotal = sssTotal;
+            currentEmployersDeduction.PhilhealthTotal = philhealthTotal;
+            currentEmployersDeduction.PagibigTotal = pagibigTotal;
+            _context.EmployersDeduction.Update(currentEmployersDeduction);
+
+            _context.SalaryLedger.Update(currentSalaryLedger);
 
             await _context.SaveChangesAsync();
             return Json(new { success = true, message = "Time out successful!" });

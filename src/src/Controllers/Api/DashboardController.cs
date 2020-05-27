@@ -67,6 +67,10 @@ namespace src.Controllers.Api
             employees.Id = model["Id"].ToString();
             _context.Employees.Update(employees);
 
+            ApplicationUser applicationUser = _context.ApplicationUser.Where(x => x.IdNumber == employees.IdNumber).FirstOrDefault();
+            applicationUser.Role = employees.Role;
+            _context.ApplicationUser.Update(applicationUser);
+
             SalaryLedger salaryLedger = _context.SalaryLedger.Where(x => x.IdNumber == employees.IdNumber).FirstOrDefault();
             salaryLedger.BasicPay = employees.BasicPay.Value;
             _context.SalaryLedger.Update(salaryLedger);
