@@ -1,0 +1,120 @@
+﻿@model src.Models.Organization
+@{
+    ViewData["Title"] = "Reports";
+    Layout = "_LayoutAdminlteManager";
+}
+
+<!-- Content Header (Page header) -->
+<!-- Main content -->
+<section class="content">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="box box-primary">
+                <div class="box-body">
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <input type="hidden" asp-for="@Model.organizationId" />
+                            <table id="grid" name="grid" class="table table-striped table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th colspan="3"><center>Salary ledger and Payslip</center></th>
+                                    </tr>
+                                    <tr>
+                                        <th class="col-md-1">Year</th>
+                                        <th class="col-md-1">Month</th>
+                                        <th class="col-md-1">Button</th>
+                                    </tr>
+                                    <tr>
+                                        <th class="col-md-1">
+                                            <select name="selectYear" class="form-control" id="dropdownYear"></select>
+                                            @*style="width: 120px;"
+                                                onchange="getProjectReportFunc()"*@
+                                        </th>
+                                        <th class="col-md-1">
+                                            <select class="form-control" id="dropdownMonth">
+                                                <option value="01">January</option>
+                                                <option value="02">February</option>
+                                                <option value="03">March</option>
+                                                <option value="04">April</option>
+                                                <option value="05">May</option>
+                                                <option value="06">June</option>
+                                                <option value="07">July</option>
+                                                <option value="08">August</option>
+                                                <option value="09">September</option>
+                                                <option value="10">October</option>
+                                                <option value="11">November</option>
+                                                <option value="12">December</option>
+                                            </select>
+                                        </th>
+                                        <th class="col-md-1">
+                                            <a class="btn btn-success btn-xs exportTicketing"><i class='fa fa-download'></i> Export</a>
+                                        </th>
+                                    </tr>
+                                    <tr>
+                                        <th class="col-md-1">
+                                            Range (from today to .. )
+                                        </th>
+                                        <th class="col-md-1">
+                                            <select class="form-control" id="dropdownDate">
+                                                <option value="1000000">All</option>
+                                                <option value="365">Last year</option>
+                                                <option value="31">Last month</option>
+                                            </select>
+                                        </th>
+                                        <th class="col-md-1">
+                                            <a class="btn btn-success btn-xs exportTicketingDate"><i class='fa fa-download'></i> Export</a>
+                                        </th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</section>
+<!-- /.content -->
+<!--modal placeholder-->
+<div class="modal modal-primary fade" id="modalDefault">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+        </div>
+    </div>
+</div>
+
+
+
+@section Scripts{
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+    <script>
+    let selectYear = document.getElementById('dropdownYear');
+    let currYear = new Date().getFullYear();
+    let pastYear = currYear - 2;
+    for (let year = pastYear; year <= currYear; year++) {
+        let option = document.createElement('option');
+        option.setAttribute('value', year);
+        if (year === currYear) {
+            option.setAttribute('selected', true);
+        }
+        option.innerHTML = year;
+        selectYear.appendChild(option);
+
+        $(".exportTicketing").on("click", function (e) {
+            var getSelectedYear = $("#dropdownYear").val();
+            var getSelectedMonth = $("#dropdownMonth").val();
+            $(".exportTicketing").attr("href", "/api/Report/PayslipReport?Year=" + getSelectedYear + "&Month=" + getSelectedMonth);
+        });
+
+        $(".exportTicketingDate").on("click", function (e) {
+            var getSelectedDate = $("#dropdownDate").val();
+            $(".exportTicketingDate").attr("href", "/api/Report/PayslipReportDate?Date=" + getSelectedDate);
+        });
+
+    }
+    </script>
+}
+

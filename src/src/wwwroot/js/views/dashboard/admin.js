@@ -13,7 +13,7 @@ $(document).ready(function () {
         "columns": [
             { "data": "idNumber" },
             { "data": "fullName" },
-            { "data": "position" },
+            //{ "data": "position" },
             { "data": "basicPay" },
             { "data": "role" },
             { "data": "totalTimeOut" },

@@ -42,75 +42,17 @@ $(document).ready(function () {
             { "data": "editorTimeOut" },
             { "data": "numberOfMinTardiness" },
             { "data": "numberOfMinOT" },
-            //{
-            //    "data": function (data) {
-            //        var btnDeductions = "<a class='btn btn-default btn-xs' onclick=ShowPopup('/Attendance/AddEditIndex?id=" + data["idNumber"] + "')><i class='fa fa-minus-square' title='Deductions'></i></a>";
-            //        return btnDeductions;
-            //    }
-            //}
+            {
+                "data": function (data) {
+                    var btnEdit = "<a class='btn btn-default btn-xs' onclick=ShowPopup('/Attendance/AddEditIndex?id=" + data["id"] + "')><i class='fa fa-pencil' title='Edit'></i></a>";
+                    return btnEdit;
+                }
+            }
         ],
         "language": {
             "emptyTable": "no data found."
         },
         "lengthChange": false,
-    });
-});
-$("#grid").on("click", ".btnTimeIn", function (e) {
-    e.preventDefault();
-    var id = $(this).attr("data-id");
-    //alert(id);
-    var param = { idNumber: id };
-    swal({
-        title: "Are you sure want to complete this transaction?",
-        text: "You will not be able to restore the file!",
-        type: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#dd4b39",
-        confirmButtonText: "Yes, update it!",
-        closeOnConfirm: true
-    }, function () {
-        $.ajax({
-            type: 'POST',
-            url: apiurl + '/PostTimeIn',
-            data: param,
-            success: function (data) {
-                if (data.success) {
-                    ShowMessage(data.message);
-                    dataTable.ajax.reload();
-                } else {
-                    ShowMessageError(data.message);
-                }
-            }
-        });
-    });
-});
-$("#grid").on("click", ".btnTimeOut", function (e) {
-    e.preventDefault();
-    var id = $(this).attr("data-id");
-    //alert(id);
-    var param = { idNumber: id };
-    swal({
-        title: "Are you sure want to complete this transaction?",
-        text: "You will not be able to restore the file!",
-        type: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#dd4b39",
-        confirmButtonText: "Yes, update it!",
-        closeOnConfirm: true
-    }, function () {
-        $.ajax({
-            type: 'POST',
-            url: apiurl + '/PostTimeOut',
-            data: param,
-            success: function (data) {
-                if (data.success) {
-                    ShowMessage(data.message);
-                    dataTable.ajax.reload();
-                } else {
-                    ShowMessageError(data.message);
-                }
-            }
-        });
     });
 });
 const monthNames = ["January", "February", "March", "April", "May", "June",
@@ -138,6 +80,31 @@ function ShowPopup(url) {
                 backdrop: 'static'
             });
         });
+}
+
+function SubmitAddEdit(form) {
+    $.validator.unobtrusive.parse(form);
+    if ($(form).valid()) {
+        var data = $(form).serializeJSON();
+        data = JSON.stringify(data);
+        $.ajax({
+            type: 'POST',
+            url: apiurl,
+            data: data,
+            contentType: 'application/json',
+            success: function (data) {
+                if (data.success) {
+                    popup.modal('hide');
+                    ShowMessage(data.message);
+                    dataTable.ajax.reload();
+                } else {
+                    ShowMessageError(data.message);
+                }
+            }
+        });
+
+    }
+    return false;
 }
 
 function Delete(id) {

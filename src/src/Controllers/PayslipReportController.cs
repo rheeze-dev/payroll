@@ -10,13 +10,13 @@ using src.Models;
 
 namespace src.Controllers
 {
-    [Authorize]
-    public class AttendanceController : BaseDotnetDeskController
+    public class PayslipReportController : BaseDotnetDeskController
     {
+
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
 
-        public AttendanceController(ApplicationDbContext context,
+        public PayslipReportController(ApplicationDbContext context,
             UserManager<ApplicationUser> userManager)
         {
             _context = context;
@@ -31,25 +31,14 @@ namespace src.Controllers
                 //return NotFound();
             }
             ApplicationUser appUser = await _userManager.GetUserAsync(User);
-
+            if (appUser.Role != "Manager")
+            {
+                return NotFound();
+            }
             Organization organization = _context.Organization.Where(x => x.organizationId.Equals(org)).FirstOrDefault();
             ViewData["org"] = org;
             return View(organization);
         }
-
-        public IActionResult AddEditIndex(Guid org, Guid id)
-        {
-            if (id == Guid.Empty)
-            {
-                Attendance attendance = new Attendance();
-                return View(attendance);
-            }
-            else
-            {
-                return View(_context.Attendance.Where(x => x.Id.Equals(id)).FirstOrDefault());
-            }
-
-        }
-
+       
     }
 }

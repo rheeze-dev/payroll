@@ -19,8 +19,8 @@ namespace src.Models
         [Display(Name = "Full Name")]
         public string FullName { get; set; }
 
-        [Display(Name = "Position")]
-        public string Position { get; set; }
+        //[Display(Name = "Position")]
+        //public string Position { get; set; }
 
         [Display(Name = "Basic Pay")]
         public int? BasicPay { get; set; }

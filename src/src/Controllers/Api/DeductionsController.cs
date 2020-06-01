@@ -61,47 +61,40 @@ namespace src.Controllers.Api
         [HttpPost]
         public async Task<IActionResult> PostDeductions([FromBody] JObject model)
         {
-            int id = 0;
+            string id = "";
             var info = await _userManager.GetUserAsync(User);
-            id = Convert.ToInt32(model["Id"].ToString());
-
-            //Employees employees = new Employees
-            //{
-            //    Position = model["Position"].ToString(),
-            //    BasicPay = Convert.ToInt32(model["BasicPay"].ToString()),
-            //    Role = model["Role"].ToString(),
-            //    IdNumber = model["IdNumber"].ToString(),
-            //    FullName = model["FullName"].ToString()
-            //};
-
-            ////employees.Editor = info.FullName;
-            ////employees.DateTimeEdited = DateTime.Now;
-            ////employees.BirthDate = employees.BirthDate;
-            ////employees.Email = employees.Email;
-            ////employees.TotalTimeOut = employees.TotalTimeOut;
-            ////employees.TotalTimeIn = employees.TotalTimeIn;
-            ////employees.DateTimeChecker = employees.DateTimeChecker;
-            ////employees.PhoneNumber = employees.PhoneNumber;
-
-            //employees.Id = model["Id"].ToString();
-            //_context.Employees.Update(employees);
+            id = model["IdNumber"].ToString();
 
             SalaryLedger salaryLedger = _context.SalaryLedger.Where(x => x.IdNumber == id.ToString()).FirstOrDefault();
+            CurrentLedger currentLedger = _context.CurrentLedger.Where(x => x.IdNumber == id.ToString()).FirstOrDefault();
+
             salaryLedger.Charges1 = Convert.ToInt32(model["Charges1"].ToString());
             salaryLedger.CashOut = Convert.ToInt32(model["CashOut"].ToString());
             salaryLedger.SalaryLoan = Convert.ToInt32(model["SalaryLoan"].ToString());
-            salaryLedger.PaymentPlan = Convert.ToInt32(model["PaymentPlan"].ToString());
-            salaryLedger.TotalDeductions = salaryLedger.Charges1 + salaryLedger.AmountTardiness + salaryLedger.CashOut + salaryLedger.SalaryLoan;
-            salaryLedger.Editor = info.FullName;
+            if (model["PaymentPlan"] != null)
+            {
+                salaryLedger.PaymentPlan = Convert.ToInt32(model["PaymentPlan"].ToString());
+            }
+            if (Convert.ToInt32(model["SalaryLoan"].ToString()) != 0 && model["PaymentPlan"] == null)
+            {
+                return Json(new { success = false, message = "Payment plan cannot be empty!" });
+            }
+            else if (Convert.ToInt32(model["SalaryLoan"].ToString()) == 0 && model["PaymentPlan"] != null)
+            {
+                return Json(new { success = false, message = "Salary loan cannot be 0!" });
+            }
 
+            salaryLedger.TotalDeductions = salaryLedger.Charges1 + salaryLedger.AmountTardiness + salaryLedger.CashOut + salaryLedger.LoanAmount + salaryLedger.PhilHealthEmployee + salaryLedger.PagibigEmployee + salaryLedger.SSSEmployee;
+            salaryLedger.NetAmountPaid = salaryLedger.GrossPay - salaryLedger.TotalDeductions;
+            salaryLedger.Editor = info.FullName;
             _context.SalaryLedger.Update(salaryLedger);
 
-            CurrentLedger currentLedger = _context.CurrentLedger.Where(x => x.IdNumber == id.ToString()).FirstOrDefault();
             currentLedger.Charges1 = salaryLedger.Charges1;
             currentLedger.CashOut = salaryLedger.CashOut;
             currentLedger.SalaryLoan = salaryLedger.SalaryLoan;
             currentLedger.PaymentPlan = salaryLedger.PaymentPlan;
             currentLedger.TotalDeductions = salaryLedger.TotalDeductions;
+            currentLedger.NetAmountPaid = salaryLedger.NetAmountPaid;
             currentLedger.Editor = salaryLedger.Editor;
             _context.CurrentLedger.Update(currentLedger);
 

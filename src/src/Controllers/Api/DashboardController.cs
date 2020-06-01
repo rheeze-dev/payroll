@@ -53,12 +53,12 @@ namespace src.Controllers.Api
         [HttpPost]
         public async Task<IActionResult> PostDashboard([FromBody] JObject model)
         {
-            int id = 0;
+            string id = "";
             var info = await _userManager.GetUserAsync(User);
-            id = Convert.ToInt32(model["Id"].ToString());
+            id = model["Id"].ToString();
 
             Employees employees = _context.Employees.Where(x => x.IdNumber == model["IdNumber"].ToString()).FirstOrDefault();
-            employees.Position = model["Position"].ToString();
+            //employees.Position = model["Position"].ToString();
             employees.BasicPay = Convert.ToInt32(model["BasicPay"].ToString());
             employees.Role = model["Role"].ToString();
             employees.FullName = model["FullName"].ToString();

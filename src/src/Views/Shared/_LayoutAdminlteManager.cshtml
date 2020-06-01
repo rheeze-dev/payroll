@@ -144,6 +144,11 @@
                                 <i class="fa fa-users"></i> <span>Employees</span>
                             </a>
                         </li>
+                        <li class="@Html.IsSelected(controller: "PayslipReport", action: "Index")">
+                            <a href="@Url.Action("Index", "PayslipReport", new { org = org })">
+                                <i class="fa fa-download"></i> <span>Reports</span>
+                            </a>
+                        </li>
                         <li class="@Html.IsSelected(controller: "Config", action: "UserProfile")">
                             <a href="@Url.Action("UserProfile", "Config", new { org = org })">
                                 <i class="fa fa-user-circle"></i> <span>My Account</span>

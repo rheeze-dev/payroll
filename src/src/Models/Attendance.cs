@@ -38,5 +38,7 @@ namespace src.Models
 
         [Display(Name = "Editor")]
         public string EditorTimeOut { get; set; }
+
+        public string Remarks { get; set; }
     }
 }

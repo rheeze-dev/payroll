@@ -39,7 +39,7 @@
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="Id" />
             @*<input type="text" asp-for="IdNumber" />
-            <input type="text" asp-for="FullName" />*@
+                <input type="text" asp-for="FullName" />*@
             @*<input type="text" asp-for="Email" />*@
             <div class="row">
                 <div class="form-group col-lg-6">
@@ -92,19 +92,25 @@
                 </div>
             </div>
             <div class="row">
-                <div class="form-group col-lg-6">
-                    <label asp-for="GrossPayPayslip" class="control-label">GrossPay: </label>
-                    <label class="text-warning">@Model.GrossPayPayslip</label>
-                </div>
-                <div class="form-group col-lg-6">
-                    <label asp-for="AmountTardiness" class="control-label">Tardiness: </label>
-                    <label class="text-warning">@Model.AmountTardiness</label>
+                <div class="form-group col-lg-12">
+                    <label asp-for="GrossPay" class="control-label">GrossPay: </label>
+                    <label class="text-warning">@Model.GrossPay</label>
                 </div>
             </div>
             <div class="row">
                 <div class="form-group col-lg-6">
-                    <label asp-for="Charges1" class="control-label">Charges: </label>
-                    <label class="text-warning">@Model.Charges1</label>
+                    <label asp-for="LoanAmount" class="control-label">Salary loan: </label>
+                    <label class="text-warning">@Model.LoanAmount</label>
+                </div>
+                <div class="form-group col-lg-6">
+                    <label asp-for="LoanBalance" class="control-label">Loan balance: </label>
+                    <label class="text-warning">@Model.LoanBalance</label>
+                </div>
+            </div>
+            <div class="row">
+                <div class="form-group col-lg-6">
+                    <label asp-for="AmountTardiness" class="control-label">Tardiness: </label>
+                    <label class="text-warning">@Model.AmountTardiness</label>
                 </div>
                 <div class="form-group col-lg-6">
                     <label asp-for="CashOut" class="control-label">CashOut: </label>
@@ -113,8 +119,8 @@
             </div>
             <div class="row">
                 <div class="form-group col-lg-6">
-                    <label asp-for="LoanAmount" class="control-label">Salary loan: </label>
-                    <label class="text-warning">@Model.LoanAmount</label>
+                    <label asp-for="Charges1" class="control-label">Charges: </label>
+                    <label class="text-warning">@Model.Charges1</label>
                 </div>
                 <div class="form-group col-lg-6">
                     <label asp-for="PhilHealthEmployee" class="control-label">Phil health: </label>
@@ -184,7 +190,7 @@ else
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="Id" />
             @*<input type="text" asp-for="IdNumber" />
-            <input type="text" asp-for="FullName" />*@
+                <input type="text" asp-for="FullName" />*@
             @*<input type="text" asp-for="Email" />*@
             <div class="row">
                 <div class="form-group col-lg-6">
@@ -237,19 +243,26 @@ else
                 </div>
             </div>
             <div class="row">
+                <div class="form-group col-lg-12">
+                    <label asp-for="GrossPay" class="control-label">GrossPay: </label>
+                    <label class="text-warning">@Model.GrossPay</label>
+                </div>
+            </div>
+
+            <div class="row">
                 <div class="form-group col-lg-6">
-                    <label asp-for="GrossPayPayslip" class="control-label">GrossPay: </label>
-                    <label class="text-warning">@Model.GrossPayPayslip</label>
+                    <label asp-for="LoanAmount" class="control-label">Salary loan: </label>
+                    <label class="text-warning">@Model.LoanAmount</label>
                 </div>
                 <div class="form-group col-lg-6">
-                    <label asp-for="AmountTardiness" class="control-label">Tardiness: </label>
-                    <label class="text-warning">@Model.AmountTardiness</label>
+                    <label asp-for="LoanBalance" class="control-label">Loan balance: </label>
+                    <label class="text-warning">@Model.LoanBalance</label>
                 </div>
             </div>
             <div class="row">
                 <div class="form-group col-lg-6">
-                    <label asp-for="Charges1" class="control-label">Charges: </label>
-                    <label class="text-warning">@Model.Charges1</label>
+                    <label asp-for="AmountTardiness" class="control-label">Tardiness: </label>
+                    <label class="text-warning">@Model.AmountTardiness</label>
                 </div>
                 <div class="form-group col-lg-6">
                     <label asp-for="CashOut" class="control-label">CashOut: </label>
@@ -258,8 +271,8 @@ else
             </div>
             <div class="row">
                 <div class="form-group col-lg-6">
-                    <label asp-for="LoanAmount" class="control-label">Salary loan: </label>
-                    <label class="text-warning">@Model.LoanAmount</label>
+                    <label asp-for="Charges1" class="control-label">Charges: </label>
+                    <label class="text-warning">@Model.Charges1</label>
                 </div>
                 <div class="form-group col-lg-6">
                     <label asp-for="PhilHealthEmployee" class="control-label">Phil health: </label>

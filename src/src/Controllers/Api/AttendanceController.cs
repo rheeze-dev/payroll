@@ -49,5 +49,85 @@ namespace src.Controllers.Api
             return Json(new { data = attendance });
         }
 
+        // GET: api/Deductions/PostDeductions
+        [HttpPost]
+        public async Task<IActionResult> PostAttendance([FromBody] JObject model)
+        {
+            Guid objGuid = Guid.Empty;
+            objGuid = Guid.Parse(model["Id"].ToString());
+            var info = await _userManager.GetUserAsync(User);
+
+            //int id = 0;
+            //id = Convert.ToInt32(model["Id"].ToString());
+            Attendance attendance = _context.Attendance.Where(x => x.Id == objGuid).FirstOrDefault();
+            var originalTardiness = attendance.NumberOfMinTardiness;
+            var originalTimeIn = attendance.TimeIn;
+            var threeDaysAgo = DateTime.Now.AddDays(-3);
+            if (originalTimeIn < threeDaysAgo)
+            {
+                return Json(new { success = false, message = "Maximum time to edit is after 3 days!" });
+            }
+            attendance.TimeIn = Convert.ToDateTime(model["TimeIn"].ToString());
+            attendance.Remarks = model["Remarks"].ToString();
+            if (model["Remarks"].ToString() == "")
+            {
+                return Json(new { success = false, message = "Remarks cannot be empty!" });
+            }
+
+            var newTimeIn = Convert.ToDateTime(model["TimeIn"].ToString());
+            var newTimeInDate = newTimeIn.Date;
+            if (originalTimeIn.Value.Date != newTimeInDate)
+            {
+                return Json(new { success = false, message = "You can only edit the time!" });
+            }
+            attendance.EditorTimeIn = info.FullName;
+
+            var tardiness = DateTime.Now;
+            tardiness = new DateTime(tardiness.Year, tardiness.Month, tardiness.Day, 08, 00, 00);
+            TimeSpan solve = attendance.TimeIn.Value - tardiness;
+            int tardinessMin = (int)solve.TotalMinutes;
+
+            SalaryLedger salaryLedger = _context.SalaryLedger.Where(x => x.IdNumber == model["IdNumber"].ToString()).FirstOrDefault();
+            CurrentLedger currentLedger = _context.CurrentLedger.Where(x => x.IdNumber == model["IdNumber"].ToString()).FirstOrDefault();
+            Employees employees = _context.Employees.Where(x => x.IdNumber == model["IdNumber"].ToString()).FirstOrDefault();
+
+            if (attendance.TimeIn.Value > tardiness)
+            {
+                attendance.NumberOfMinTardiness = tardinessMin;
+
+                salaryLedger.NumberOfMinTardiness = salaryLedger.NumberOfMinTardiness - originalTardiness;
+                salaryLedger.NumberOfMinTardiness = salaryLedger.NumberOfMinTardiness + tardinessMin;
+                salaryLedger.AmountTardiness = salaryLedger.NumberOfMinTardiness * employees.BasicPay.Value / 8 / 60;
+                salaryLedger.TotalDeductions = salaryLedger.Charges1 + salaryLedger.AmountTardiness + salaryLedger.CashOut + salaryLedger.LoanAmount + salaryLedger.PhilHealthEmployee + salaryLedger.PagibigEmployee + salaryLedger.SSSEmployee;
+                salaryLedger.NetAmountPaid = salaryLedger.GrossPay - salaryLedger.TotalDeductions;
+
+
+                //salaryLedger.AmountTardiness = salaryLedger.AmountTardiness - originalTardinessAmount;
+                //salaryLedger.AmountTardiness = newTardinessAmount;
+
+                currentLedger.NumberOfMinTardiness = salaryLedger.NumberOfMinTardiness;
+                currentLedger.AmountTardiness = salaryLedger.AmountTardiness;
+                currentLedger.TotalDeductions = salaryLedger.TotalDeductions;
+                currentLedger.NetAmountPaid = salaryLedger.NetAmountPaid;
+
+            }
+            else if (attendance.TimeIn.Value < tardiness)
+            {
+                attendance.NumberOfMinTardiness = attendance.NumberOfMinTardiness - originalTardiness;
+                salaryLedger.NumberOfMinTardiness = salaryLedger.NumberOfMinTardiness - originalTardiness;
+                salaryLedger.AmountTardiness = salaryLedger.NumberOfMinTardiness * employees.BasicPay.Value / 8 / 60;
+
+                currentLedger.NumberOfMinTardiness = salaryLedger.NumberOfMinTardiness;
+                currentLedger.AmountTardiness = salaryLedger.AmountTardiness;
+            }
+
+            _context.SalaryLedger.Update(salaryLedger);
+            _context.Attendance.Update(attendance);
+            _context.CurrentLedger.Update(currentLedger);
+
+            await _context.SaveChangesAsync();
+            return Json(new { success = true, message = "Successfully Saved!" });
+        }
+
     }
 }
