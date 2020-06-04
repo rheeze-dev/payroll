@@ -15,6 +15,7 @@ $(document).ready(function () {
             { "data": "fullName" },
             //{ "data": "position" },
             { "data": "basicPay" },
+            { "data": "cola" },
             { "data": "role" },
             { "data": "totalTimeOut" },
             {

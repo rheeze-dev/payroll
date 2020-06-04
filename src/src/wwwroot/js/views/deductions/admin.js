@@ -26,7 +26,8 @@ $(document).ready(function () {
             //},
             { "data": "idNumber" },
             { "data": "fullName" },
-            
+            { "data": "addAdjustment" },
+            { "data": "lessAdjustment" },
             { "data": "charges1" },
             { "data": "cashOut" },
             { "data": "salaryLoan" },

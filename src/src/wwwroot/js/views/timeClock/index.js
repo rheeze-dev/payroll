@@ -16,18 +16,28 @@ $(document).ready(function () {
             { "data": "fullName" },
             {
                 "data": function (data) {
+                    var empty = "";
+                    var btnRH = "<a class='btn btn-danger btn-xs btnRH' data-id='" + data["idNumber"] + "'>Regular</a>";
+                    var btnSH = "<a class='btn btn-danger btn-xs btnSH' data-id='" + data["idNumber"] + "'>Special</a>";
+                    if (data["totalTimeIn"] == data["totalTimeOut"]) {
+                        return empty;
+                    }
+                    else if (data["totalTimeIn"] != data["totalTimeOut"]) {
+                        return btnRH + "  " + btnSH;
+                    }
+                }
+            },
+            {
+                "data": function (data) {
                     var btnTimeIn = "<a class='btn btn-success btn-xs btnTimeIn' data-id='" + data["idNumber"] + "'>Time in</a>";
                     var btnTimeOut = "<a class='btn btn-success btn-xs btnTimeOut' data-id='" + data["idNumber"] + "'>Time out</a>";
                     var btnOvertime = "<a class='btn btn-danger btn-xs btnOvertime' data-id='" + data["idNumber"] + "'>Overtime</a>";
-
-
                     if (data["totalTimeIn"] == data["totalTimeOut"]) {
                         return btnTimeIn;
                     }
                     else if (data["totalTimeIn"] != data["totalTimeOut"]) {
                         return btnTimeOut + "  " + btnOvertime;
                     }
-                    
                 }
             }
         ],
@@ -113,6 +123,66 @@ $("#grid").on("click", ".btnOvertime", function (e) {
         $.ajax({
             type: 'POST',
             url: apiurl + '/PostOvertime',
+            data: param,
+            success: function (data) {
+                if (data.success) {
+                    ShowMessage(data.message);
+                    dataTable.ajax.reload();
+                } else {
+                    ShowMessageError(data.message);
+                }
+            }
+        });
+    });
+});
+
+$("#grid").on("click", ".btnRH", function (e) {
+    e.preventDefault();
+    var id = $(this).attr("data-id");
+    //alert(id);
+    var param = { idNumber: id };
+    swal({
+        title: "Are you sure want to complete this transaction?",
+        text: "You will not be able to restore the file!",
+        type: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#dd4b39",
+        confirmButtonText: "Yes, update it!",
+        closeOnConfirm: true
+    }, function () {
+        $.ajax({
+            type: 'POST',
+            url: apiurl + '/PostRegularHoliday',
+            data: param,
+            success: function (data) {
+                if (data.success) {
+                    ShowMessage(data.message);
+                    dataTable.ajax.reload();
+                } else {
+                    ShowMessageError(data.message);
+                }
+            }
+        });
+    });
+});
+
+$("#grid").on("click", ".btnSH", function (e) {
+    e.preventDefault();
+    var id = $(this).attr("data-id");
+    //alert(id);
+    var param = { idNumber: id };
+    swal({
+        title: "Are you sure want to complete this transaction?",
+        text: "You will not be able to restore the file!",
+        type: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#dd4b39",
+        confirmButtonText: "Yes, update it!",
+        closeOnConfirm: true
+    }, function () {
+        $.ajax({
+            type: 'POST',
+            url: apiurl + '/PostSpecialHoliday',
             data: param,
             success: function (data) {
                 if (data.success) {

@@ -325,9 +325,9 @@ namespace src.Controllers
                 var user = new ApplicationUser { UserName = model.Email, IdNumber = model.IdNumber, Email = model.Email,  FullName = model.FullName, Role = model.Role };
                 var now = DateTime.Now;
                 now = new DateTime(now.Year, now.Month, now.Day, 00, 00, 00);
-                var employees = new Employees { Id = user.Id, IdNumber = model.IdNumber, Email = model.Email, FullName = model.FullName, DateTimeChecker = now, TimeInChecker = null, Role = model.Role };
-                var salaryLedger = new SalaryLedger { Id = user.Id, IdNumber = model.IdNumber, Email = model.Email, FullName = model.FullName, DateAndTime = DateTime.Now };
-                var currentLedger = new CurrentLedger { Id = user.Id, IdNumber = model.IdNumber, Email = model.Email, FullName = model.FullName, DateAndTime = DateTime.Now };
+                var employees = new Employees { Id = user.Id, IdNumber = model.IdNumber, Email = model.Email, FullName = model.FullName, DateTimeChecker = now, TimeInChecker = null, Role = model.Role, Cola = 10 };
+                var salaryLedger = new SalaryLedger { Id = user.Id, IdNumber = model.IdNumber, Email = model.Email, FullName = model.FullName, DateAndTime = DateTime.Now, Cola = 10 };
+                var currentLedger = new CurrentLedger { Id = user.Id, IdNumber = model.IdNumber, Email = model.Email, FullName = model.FullName, DateAndTime = DateTime.Now, Cola =10 };
                 var day = DateTime.Now.Day;
                 if (day >= 16)
                 {

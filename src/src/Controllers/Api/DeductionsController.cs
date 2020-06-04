@@ -68,9 +68,30 @@ namespace src.Controllers.Api
             SalaryLedger salaryLedger = _context.SalaryLedger.Where(x => x.IdNumber == id.ToString()).FirstOrDefault();
             CurrentLedger currentLedger = _context.CurrentLedger.Where(x => x.IdNumber == id.ToString()).FirstOrDefault();
 
+            salaryLedger.AddAdjustment = Convert.ToInt32(model["AddAdjustment"].ToString());
+            salaryLedger.LessAdjustment = Convert.ToInt32(model["LessAdjustment"].ToString());
             salaryLedger.Charges1 = Convert.ToInt32(model["Charges1"].ToString());
             salaryLedger.CashOut = Convert.ToInt32(model["CashOut"].ToString());
-            salaryLedger.SalaryLoan = Convert.ToInt32(model["SalaryLoan"].ToString());
+            if (salaryLedger.SalaryLoan == 0)
+            {
+                salaryLedger.SalaryLoan = Convert.ToInt32(model["SalaryLoan"].ToString());
+            }
+            else if (salaryLedger.SalaryLoan == Convert.ToInt32(model["SalaryLoan"].ToString()))
+            {
+                salaryLedger.SalaryLoan = Convert.ToInt32(model["SalaryLoan"].ToString());
+            }
+            else if (salaryLedger.SalaryLoan != Convert.ToInt32(model["SalaryLoan"].ToString()))
+            {
+                return Json(new { success = false, message = "Previous loan not completed!" });
+            }
+            if (salaryLedger.PaymentPlan == Convert.ToInt32(model["PaymentPlan"].ToString()))
+            {
+                salaryLedger.PaymentPlan = Convert.ToInt32(model["PaymentPlan"].ToString());
+            }
+            else if (salaryLedger.PaymentPlan != null)
+            {
+                return Json(new { success = false, message = "Payment plan cannot be changed!" });
+            }
             if (model["PaymentPlan"] != null)
             {
                 salaryLedger.PaymentPlan = Convert.ToInt32(model["PaymentPlan"].ToString());
@@ -84,21 +105,25 @@ namespace src.Controllers.Api
                 return Json(new { success = false, message = "Salary loan cannot be 0!" });
             }
 
-            salaryLedger.TotalDeductions = salaryLedger.Charges1 + salaryLedger.AmountTardiness + salaryLedger.CashOut + salaryLedger.LoanAmount + salaryLedger.PhilHealthEmployee + salaryLedger.PagibigEmployee + salaryLedger.SSSEmployee;
+            salaryLedger.GrossPay = salaryLedger.AddAdjustment + salaryLedger.TotalAmountBP + salaryLedger.AmountOT + salaryLedger.AmountSundays + salaryLedger.AmountRH + salaryLedger.AmountSH;
+            salaryLedger.TotalDeductions = salaryLedger.LessAdjustment + salaryLedger.Charges1 + salaryLedger.AmountTardiness + salaryLedger.CashOut + salaryLedger.LoanAmount + salaryLedger.PhilHealthEmployee + salaryLedger.PagibigEmployee + salaryLedger.SSSEmployee;
             salaryLedger.NetAmountPaid = salaryLedger.GrossPay - salaryLedger.TotalDeductions;
             salaryLedger.Editor = info.FullName;
             _context.SalaryLedger.Update(salaryLedger);
 
+            currentLedger.AddAdjustment = salaryLedger.AddAdjustment;
+            currentLedger.LessAdjustment = salaryLedger.LessAdjustment;
             currentLedger.Charges1 = salaryLedger.Charges1;
             currentLedger.CashOut = salaryLedger.CashOut;
             currentLedger.SalaryLoan = salaryLedger.SalaryLoan;
             currentLedger.PaymentPlan = salaryLedger.PaymentPlan;
+            currentLedger.GrossPay = salaryLedger.GrossPay;
             currentLedger.TotalDeductions = salaryLedger.TotalDeductions;
             currentLedger.NetAmountPaid = salaryLedger.NetAmountPaid;
             currentLedger.Editor = salaryLedger.Editor;
             _context.CurrentLedger.Update(currentLedger);
 
-            await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync();
             return Json(new { success = true, message = "Successfully Saved!" });
         }
 

@@ -25,6 +25,9 @@ namespace src.Models
         [Display(Name = "Basic pay")]
         public int BasicPay { get; set; }
 
+        [Display(Name = "Total basic pay")]
+        public int TotalBasicPay { get; set; }
+
         [Display(Name = "Days of work")]
         public int DaysOfWorkBP { get; set; }
 
@@ -122,5 +125,7 @@ namespace src.Models
         public bool SalaryLoanChecker { get; set; }
 
         public bool MidMonth { get; set; }
+
+        public int Cola { get; set; }
     }
 }

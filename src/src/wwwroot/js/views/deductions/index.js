@@ -26,7 +26,8 @@ $(document).ready(function () {
             //},
             { "data": "idNumber" },
             { "data": "fullName" },
-            
+            { "data": "addAdjustment" },
+            { "data": "lessAdjustment" },
             { "data": "charges1" },
             { "data": "cashOut" },
             { "data": "salaryLoan" },
@@ -34,7 +35,7 @@ $(document).ready(function () {
             { "data": "editor" },
             {
                 "data": function (data) {
-                    var btnDeductions = "<a class='btn btn-default btn-xs' onclick=ShowPopup('/Deductions/AddEditIndex?id=" + data["idNumber"] + "')><i class='fa fa-minus-square' title='Deductions'></i></a>";
+                    var btnDeductions = "<a class='btn btn-default btn-xs' onclick=ShowPopup('/Adjustments/AddEditIndex?id=" + data["idNumber"] + "')><i class='fa fa-minus-square' title='Deductions'></i></a>";
                     return btnDeductions;
                 }
             }

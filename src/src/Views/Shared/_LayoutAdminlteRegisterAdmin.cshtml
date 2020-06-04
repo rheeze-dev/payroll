@@ -114,9 +114,9 @@
                                 <i class="fa fa-calendar"></i> <span>Attendance</span>
                             </a>
                         </li>
-                        <li class="@Html.IsSelected(controller: "Deductions", action: "Index")">
-                            <a href="@Url.Action("Index", "Deductions", new { org = org })">
-                                <i class="fa fa-minus-square"></i> <span>Deductions</span>
+                        <li class="@Html.IsSelected(controller: "Adjustments", action: "Index")">
+                            <a href="@Url.Action("Index", "Adjustments", new { org = org })">
+                                <i class="fa fa-minus-square"></i> <span>Adjustments</span>
                             </a>
                         </li>
                         <li class="@Html.IsSelected(controller: "SalaryLedger", action: "Index")">

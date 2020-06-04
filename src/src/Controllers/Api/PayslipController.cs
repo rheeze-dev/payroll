@@ -63,35 +63,35 @@ namespace src.Controllers.Api
             }
         }
 
-        // GET: api/Deductions/PostDeductions
-        [HttpPost]
-        public async Task<IActionResult> PostDeductions([FromBody] JObject model)
-        {
-            int id = 0;
-            var info = await _userManager.GetUserAsync(User);
-            id = Convert.ToInt32(model["Id"].ToString());
+        //// GET: api/Deductions/PostDeductions
+        //[HttpPost]
+        //public async Task<IActionResult> PostDeductions([FromBody] JObject model)
+        //{
+        //    int id = 0;
+        //    var info = await _userManager.GetUserAsync(User);
+        //    id = Convert.ToInt32(model["Id"].ToString());
 
-            SalaryLedger salaryLedger = _context.SalaryLedger.Where(x => x.IdNumber == id.ToString()).FirstOrDefault();
-            salaryLedger.Charges1 = Convert.ToInt32(model["Charges1"].ToString());
-            salaryLedger.CashOut = Convert.ToInt32(model["CashOut"].ToString());
-            salaryLedger.SalaryLoan = Convert.ToInt32(model["SalaryLoan"].ToString());
-            salaryLedger.PaymentPlan = Convert.ToInt32(model["PaymentPlan"].ToString());
-            salaryLedger.TotalDeductions = salaryLedger.Charges1 + salaryLedger.AmountTardiness + salaryLedger.CashOut + salaryLedger.SalaryLoan;
-            salaryLedger.Editor = info.FullName;
+        //    SalaryLedger salaryLedger = _context.SalaryLedger.Where(x => x.IdNumber == id.ToString()).FirstOrDefault();
+        //    salaryLedger.Charges1 = Convert.ToInt32(model["Charges1"].ToString());
+        //    salaryLedger.CashOut = Convert.ToInt32(model["CashOut"].ToString());
+        //    salaryLedger.SalaryLoan = Convert.ToInt32(model["SalaryLoan"].ToString());
+        //    salaryLedger.PaymentPlan = Convert.ToInt32(model["PaymentPlan"].ToString());
+        //    salaryLedger.TotalDeductions = salaryLedger.Charges1 + salaryLedger.AmountTardiness + salaryLedger.CashOut + salaryLedger.SalaryLoan;
+        //    salaryLedger.Editor = info.FullName;
 
-            _context.SalaryLedger.Update(salaryLedger);
+        //    _context.SalaryLedger.Update(salaryLedger);
 
-            CurrentLedger currentLedger = _context.CurrentLedger.Where(x => x.IdNumber == id.ToString()).FirstOrDefault();
-            currentLedger.Charges1 = salaryLedger.Charges1;
-            currentLedger.CashOut = salaryLedger.CashOut;
-            currentLedger.SalaryLoan = salaryLedger.SalaryLoan;
-            currentLedger.PaymentPlan = salaryLedger.PaymentPlan;
-            currentLedger.TotalDeductions = salaryLedger.TotalDeductions;
-            _context.CurrentLedger.Update(currentLedger);
+        //    CurrentLedger currentLedger = _context.CurrentLedger.Where(x => x.IdNumber == id.ToString()).FirstOrDefault();
+        //    currentLedger.Charges1 = salaryLedger.Charges1;
+        //    currentLedger.CashOut = salaryLedger.CashOut;
+        //    currentLedger.SalaryLoan = salaryLedger.SalaryLoan;
+        //    currentLedger.PaymentPlan = salaryLedger.PaymentPlan;
+        //    currentLedger.TotalDeductions = salaryLedger.TotalDeductions;
+        //    _context.CurrentLedger.Update(currentLedger);
 
-            await _context.SaveChangesAsync();
-            return Json(new { success = true, message = "Successfully Saved!" });
-        }
+        //    await _context.SaveChangesAsync();
+        //    return Json(new { success = true, message = "Successfully Saved!" });
+        //}
 
     }
 }

@@ -11,12 +11,12 @@ using src.Models;
 namespace src.Controllers
 {
     [Authorize]
-    public class DeductionsController : BaseDotnetDeskController
+    public class AdjustmentsController : BaseDotnetDeskController
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
 
-        public DeductionsController(ApplicationDbContext context,
+        public AdjustmentsController(ApplicationDbContext context,
             UserManager<ApplicationUser> userManager)
         {
             _context = context;

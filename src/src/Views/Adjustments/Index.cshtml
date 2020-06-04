@@ -12,7 +12,6 @@
         Layout = "_LayoutAdminlteManager";
     }
 }
-
 <!-- Content Header (Page header) -->
 <!-- Main content -->
 @if (appUser.Role == "Admin")
@@ -31,6 +30,8 @@
                                             @*<th class="col-md-1">Datetime</th>*@
                                             <th class="col-md-1">Id</th>
                                             <th class="col-md-1">Name</th>
+                                            <th class="col-md-1">Add adjustment</th>
+                                            <th class="col-md-1">Less adjustment</th>
                                             <th class="col-md-1">Charges</th>
                                             <th class="col-md-1">Cash out</th>
                                             <th class="col-md-1">Salary loan</th>
@@ -67,6 +68,8 @@ else if (appUser.Role == "Manager")
                                             @*<th class="col-md-1">Datetime</th>*@
                                             <th class="col-md-1">Id</th>
                                             <th class="col-md-1">Name</th>
+                                            <th class="col-md-1">Add adjustment</th>
+                                            <th class="col-md-1">Less adjustment</th>
                                             <th class="col-md-1">Charges</th>
                                             <th class="col-md-1">Cash out</th>
                                             <th class="col-md-1">Salary loan</th>

@@ -40,7 +40,18 @@
                 <span asp-validation-for="FullName" class="text-danger"></span>
             </div>
         </div>
-
+        <div class="row">
+            <div class="form-group col-lg-6">
+                <label asp-for="AddAdjustment" class="control-label">Add adjustment</label>
+                <input asp-for="AddAdjustment" class="form-control" />
+                <span asp-validation-for="AddAdjustment" class="text-danger"></span>
+            </div>
+            <div class="form-group col-lg-6">
+                <label asp-for="LessAdjustment" class="control-label">Less adjustment</label>
+                <input asp-for="LessAdjustment" class="form-control" />
+                <span asp-validation-for="LessAdjustment" class="text-danger"></span>
+            </div>
+        </div>
         <div class="row">
             <div class="form-group col-lg-6">
                 <label asp-for="Charges1" class="control-label"></label>

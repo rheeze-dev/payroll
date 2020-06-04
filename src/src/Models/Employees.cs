@@ -28,6 +28,9 @@ namespace src.Models
         [Display(Name = "Birth Date")]
         public string BirthDate { get; set; }
 
+        [Display(Name = "Total basic pay")]
+        public int TotalBasicPay { get; set; }
+
         [Display(Name = "Address")]
         public string Address { get; set; }
 
@@ -57,5 +60,7 @@ namespace src.Models
 
         [Display(Name = "Time in checker")]
         public DateTime? TimeInChecker { get; set; }
+
+        public int Cola { get; set; }
     }
 }

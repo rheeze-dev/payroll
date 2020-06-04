@@ -11,9 +11,10 @@ using System;
 namespace src.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20200603115230_AddedCola")]
+    partial class AddedCola
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -373,8 +374,6 @@ namespace src.Migrations
 
                     b.Property<double>("TotalAmountBP");
 
-                    b.Property<int>("TotalBasicPay");
-
                     b.Property<double>("TotalDeductions");
 
                     b.HasKey("Id");
@@ -417,8 +416,6 @@ namespace src.Migrations
                     b.Property<string>("Role");
 
                     b.Property<DateTime?>("TimeInChecker");
-
-                    b.Property<int>("TotalBasicPay");
 
                     b.Property<int>("TotalTimeIn");
 
@@ -564,8 +561,6 @@ namespace src.Migrations
                     b.Property<bool>("SalaryLoanChecker");
 
                     b.Property<double>("TotalAmountBP");
-
-                    b.Property<int>("TotalBasicPay");
 
                     b.Property<double>("TotalDeductions");
 

@@ -65,6 +65,7 @@ namespace src.Controllers.Api
             employees.Editor = info.FullName;
             employees.DateTimeEdited = DateTime.Now;
             employees.Id = model["Id"].ToString();
+            employees.TotalBasicPay = employees.BasicPay.Value + employees.Cola;
             _context.Employees.Update(employees);
 
             ApplicationUser applicationUser = _context.ApplicationUser.Where(x => x.IdNumber == employees.IdNumber).FirstOrDefault();
@@ -73,10 +74,12 @@ namespace src.Controllers.Api
 
             SalaryLedger salaryLedger = _context.SalaryLedger.Where(x => x.IdNumber == employees.IdNumber).FirstOrDefault();
             salaryLedger.BasicPay = employees.BasicPay.Value;
+            salaryLedger.TotalBasicPay = employees.TotalBasicPay;
             _context.SalaryLedger.Update(salaryLedger);
 
             CurrentLedger currentLedger = _context.CurrentLedger.Where(x => x.IdNumber == employees.IdNumber).FirstOrDefault();
             currentLedger.BasicPay = employees.BasicPay.Value;
+            currentLedger.TotalBasicPay = employees.TotalBasicPay;
             _context.CurrentLedger.Update(currentLedger);
 
             await _context.SaveChangesAsync();
