@@ -11,9 +11,10 @@ using System;
 namespace src.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20201015145701_PunchClockAMPM")]
+    partial class PunchClockAMPM
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -222,9 +223,7 @@ namespace src.Migrations
 
                     b.Property<int>("NumberOfMinSunday");
 
-                    b.Property<int>("NumberOfMinTardinessAM");
-
-                    b.Property<int>("NumberOfMinTardinessPM");
+                    b.Property<int>("NumberOfMinTardiness");
 
                     b.Property<int>("NumberOfMinWorked");
 
@@ -237,8 +236,6 @@ namespace src.Migrations
                     b.Property<DateTime?>("TimeOutAM");
 
                     b.Property<DateTime?>("TimeOutPM");
-
-                    b.Property<int>("TotalNumberOfMinTardiness");
 
                     b.HasKey("Id");
 

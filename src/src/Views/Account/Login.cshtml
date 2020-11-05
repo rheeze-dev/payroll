@@ -16,7 +16,7 @@
 }
 
 <div class="login-box-body">
-    <p class="login-box-msg"><b>Sign in</b></p>
+    @*<p class="login-box-msg"><b>Sign in</b></p>*@
     <form asp-route-returnurl="@ViewData["ReturnUrl"]" method="post">
 
         <div class="form-group has-feedback">
@@ -26,11 +26,11 @@
             <span asp-validation-for="Email" class="text-danger"></span>
         </div>
         @*<div class="form-group has-feedback">
-            <label asp-for="IdNumber"></label>
-            <input asp-for="IdNumber" class="form-control" />
-            <span class="glyphicon glyphicon-credit-card form-control-feedback"></span>
-            <span asp-validation-for="IdNumber" class="text-danger"></span>
-        </div>*@
+                <label asp-for="IdNumber"></label>
+                <input asp-for="IdNumber" class="form-control" />
+                <span class="glyphicon glyphicon-credit-card form-control-feedback"></span>
+                <span asp-validation-for="IdNumber" class="text-danger"></span>
+            </div>*@
         <div class="form-group has-feedback">
             <label asp-for="Password"></label>
             <input asp-for="Password" class="form-control" />
@@ -39,12 +39,14 @@
         </div>
         <div class="row">
             <div class="col-xs-8">
-                <div class="checkbox icheck">
+                @*<div class="checkbox icheck">
                     <label asp-for="RememberMe">
                         <input asp-for="RememberMe" />
                         @Html.DisplayNameFor(m => m.RememberMe)
                     </label>
-                </div>
+                </div>*@
+        <a href="@src.MVC.Accounts.ForgotPassword.FullUrl">I forgot my password</a><br>
+
             </div>
             <!-- /.col -->
             <div class="col-xs-4">
@@ -54,7 +56,6 @@
         </div>
 
 
-        <a href="@src.MVC.Accounts.ForgotPassword.FullUrl">I forgot my password</a><br>
         @*<a asp-action="Register" asp-route-returnurl="@ViewData["ReturnUrl"]" class="text-center">Register a new membership</a>*@
     </form>
 

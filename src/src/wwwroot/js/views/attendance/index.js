@@ -15,10 +15,21 @@ $(document).ready(function () {
         "columns": [
             {
                 "data": function (data) {
-                    var d = new Date(data["timeIn"]);
+                    var d = new Date(data["timeInAM"]);
                     var output = monthNames[d.getMonth()] + " " + d.getDate() + ", " + d.getFullYear() + " - " + setClockTime(d);
-                    var spanData = "<span style = 'display:none;'> " + data["timeIn"] + "</span>";
-                    if (data["timeIn"] == null) {
+                    var spanData = "<span style = 'display:none;'> " + data["timeInAM"] + "</span>";
+                    if (data["timeInAM"] == null) {
+                        output = "";
+                    }
+                    return spanData + output;
+                }
+            },
+            {
+                "data": function (data) {
+                    var d = new Date(data["timeOutAM"]);
+                    var output = monthNames[d.getMonth()] + " " + d.getDate() + ", " + d.getFullYear() + " - " + setClockTime(d);
+                    var spanData = "<span style = 'display:none;'> " + data["timeOutAM"] + "</span>";
+                    if (data["timeOutAM"] == null) {
                         output = "";
                     }
                     return spanData + output;
@@ -27,21 +38,32 @@ $(document).ready(function () {
             { "data": "idNumber" },
             { "data": "fullName" },
             
-            { "data": "editorTimeIn" },
+            //{ "data": "editorTimeIn" },
             {
                 "data": function (data) {
-                    var d = new Date(data["timeOut"]);
+                    var d = new Date(data["timeInPM"]);
                     var output = monthNames[d.getMonth()] + " " + d.getDate() + ", " + d.getFullYear() + " - " + setClockTime(d);
-                    var spanData = "<span style = 'display:none;'> " + data["timeOut"] + "</span>";
-                    if (data["timeOut"] == null) {
+                    var spanData = "<span style = 'display:none;'> " + data["timeInPM"] + "</span>";
+                    if (data["timeInPM"] == null) {
                         output = "";
                     }
                     return spanData + output;
                 }
             },
-            { "data": "editorTimeOut" },
-            { "data": "numberOfMinTardiness" },
+            {
+                "data": function (data) {
+                    var d = new Date(data["timeOutPM"]);
+                    var output = monthNames[d.getMonth()] + " " + d.getDate() + ", " + d.getFullYear() + " - " + setClockTime(d);
+                    var spanData = "<span style = 'display:none;'> " + data["timeOutPM"] + "</span>";
+                    if (data["timeOutPM"] == null) {
+                        output = "";
+                    }
+                    return spanData + output;
+                }
+            },
+            { "data": "totalNumberOfMinTardiness" },
             { "data": "numberOfMinOT" },
+            { "data": "editor" },
             {
                 "data": function (data) {
                     var btnEdit = "<a class='btn btn-default btn-xs' onclick=ShowPopup('/Attendance/AddEditIndex?id=" + data["id"] + "')><i class='fa fa-pencil' title='Edit'></i></a>";

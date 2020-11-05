@@ -43,10 +43,25 @@ namespace src.Controllers.Api
 
         // GET: api/TimeClock/GetTimeClock
         [HttpGet("{organizationId}")]
-        public IActionResult GetTimeClock([FromRoute]Guid organizationId)
+        public async Task<IActionResult> GetTimeClockAsync([FromRoute]Guid organizationId)
         {
+            var info = await _userManager.GetUserAsync(User);
+
             var employees = _context.Employees.ToList();
-            return Json(new { data = employees });
+            var employee = _context.Employees.Where(x => x.IdNumber == info.IdNumber);
+
+            if (info.Role == "Employee")
+            {
+                return Json(new { data = employee });
+            }
+            else if (info.Role == "Manager")
+            {
+                return Json(new { data = employees });
+            }
+            else
+            {
+                return Json(new { data = employees });
+            }
         }
 
         //POST: api/TimeClock/PostTimeIn
@@ -57,11 +72,13 @@ namespace src.Controllers.Api
             SalaryLedger currentSalaryLedger = _context.SalaryLedger.Where(x => x.IdNumber == idNumber).OrderByDescending(x => x.DateAndTime).First();
             CurrentLedger currentLedger = _context.CurrentLedger.Where(x => x.IdNumber == idNumber).FirstOrDefault();
             EmployersDeduction currentEmployersDeduction = _context.EmployersDeduction.OrderByDescending(x => x.Date).FirstOrDefault();
+            Attendance currentAttendance = _context.Attendance.OrderByDescending(x => x.TimeInAM).Where(x => x.IdNumber == idNumber).FirstOrDefault();
 
             var info = await _userManager.GetUserAsync(User);
             var totalTimeIn = employees.TotalTimeIn;
             employees.Email = employees.Email;
             employees.TotalTimeIn = totalTimeIn + 1;
+            var globalTardiness = 0;
 
             if (employees.BasicPay == null)
             {
@@ -87,27 +104,112 @@ namespace src.Controllers.Api
             //        _context.Employees.Update(employees);
             //    }
             //}
+            //if (currentAttendance == null)
+            //{
+            //    Attendance attendance = new Attendance
+            //    {
+            //        IdNumber = idNumber,
+            //        FullName = employees.FullName
+            //        //TimeInAM = DateTime.Now,
+            //        //EditorTimeIn = info.FullName,
+            //    };
+            //    var afternoon = DateTime.Now;
+            //    afternoon = new DateTime(afternoon.Year, afternoon.Month, afternoon.Day, 12, 50, 00);
+            //    if (DateTime.Now >= afternoon)
+            //    {
+            //        attendance.TimeInPM = DateTime.Now;
+            //    }
+            //    else
+            //    {
+            //        attendance.TimeInAM = DateTime.Now;
+            //    }
 
-            Attendance attendance = new Attendance
+            //    var tardiness = DateTime.Now;
+            //    tardiness = new DateTime(tardiness.Year, tardiness.Month, tardiness.Day, 08, 00, 00);
+            //    TimeSpan solve = attendance.TimeInAM.Value - tardiness;
+            //    int tardinessMin = (int)solve.TotalMinutes;
+
+            //    if (attendance.TimeInAM.Value > tardiness)
+            //    {
+            //        attendance.NumberOfMinTardiness = tardinessMin;
+            //    }
+
+            //    attendance.Id = Guid.NewGuid();
+            //    _context.Attendance.Add(attendance);
+            //}
+            if (currentAttendance == null || currentAttendance.TimeInAM.Value.Date != DateTime.Now.Date)
             {
-                IdNumber = idNumber,
-                FullName = employees.FullName,
-                TimeIn = DateTime.Now,
-                EditorTimeIn = info.FullName,
-            };
+                Attendance attendance = new Attendance
+                {
+                    IdNumber = idNumber,
+                    FullName = employees.FullName
+                    //TimeInAM = DateTime.Now,
+                    //EditorTimeIn = info.FullName,
+                };
+                var afternoon = DateTime.Now;
+                afternoon = new DateTime(afternoon.Year, afternoon.Month, afternoon.Day, 12, 50, 00);
+                if (DateTime.Now >= afternoon)
+                {
+                    attendance.TimeInPM = DateTime.Now;
 
-            var tardiness = DateTime.Now;
-            tardiness = new DateTime(tardiness.Year, tardiness.Month, tardiness.Day, 08, 00, 00);
-            TimeSpan solve = attendance.TimeIn.Value - tardiness;
-            int tardinessMin = (int)solve.TotalMinutes;
+                    var tardiness = DateTime.Now;
+                    tardiness = new DateTime(tardiness.Year, tardiness.Month, tardiness.Day, 13, 00, 00);
+                    TimeSpan solve = attendance.TimeInPM.Value - tardiness;
+                    int tardinessMin = (int)solve.TotalMinutes;
 
-            if (attendance.TimeIn.Value > tardiness)
-            {
-                attendance.NumberOfMinTardiness = tardinessMin;
+                    if (attendance.TimeInPM.Value > tardiness)
+                    {
+                        attendance.NumberOfMinTardinessPM = tardinessMin;
+                        globalTardiness = tardinessMin;
+                    }
+                }
+                else
+                {
+                    attendance.TimeInAM = DateTime.Now;
+
+                    var tardiness = DateTime.Now;
+                    tardiness = new DateTime(tardiness.Year, tardiness.Month, tardiness.Day, 08, 00, 00);
+                    TimeSpan solve = attendance.TimeInAM.Value - tardiness;
+                    int tardinessMin = (int)solve.TotalMinutes;
+
+                    if (attendance.TimeInAM.Value > tardiness)
+                    {
+                        attendance.NumberOfMinTardinessAM = tardinessMin;
+                    }
+                }
+
+                //var tardiness = DateTime.Now;
+                //tardiness = new DateTime(tardiness.Year, tardiness.Month, tardiness.Day, 08, 00, 00);
+                //TimeSpan solve = attendance.TimeInAM.Value - tardiness;
+                //int tardinessMin = (int)solve.TotalMinutes;
+
+                //if (attendance.TimeInAM.Value > tardiness)
+                //{
+                //    attendance.NumberOfMinTardiness = tardinessMin;
+                //}
+
+                attendance.Id = Guid.NewGuid();
+                attendance.TotalNumberOfMinTardiness = attendance.NumberOfMinTardinessAM + attendance.NumberOfMinTardinessPM;
+                _context.Attendance.Add(attendance);
             }
+            else
+            {
+                currentAttendance.TimeInPM = DateTime.Now.AddHours(4);
 
-            attendance.Id = Guid.NewGuid();
-            _context.Attendance.Add(attendance);
+                var tardiness = DateTime.Now;
+                tardiness = new DateTime(tardiness.Year, tardiness.Month, tardiness.Day, 12, 00, 00);
+                TimeSpan solve = currentAttendance.TimeInPM.Value - tardiness;
+                int tardinessMin = (int)solve.TotalMinutes;
+
+                if (currentAttendance.TimeInPM.Value > tardiness)
+                {
+                    currentAttendance.NumberOfMinTardinessPM = tardinessMin;
+                }
+
+                //currentAttendance.Id = Guid.NewGuid();
+                currentAttendance.TotalNumberOfMinTardiness = currentAttendance.NumberOfMinTardinessAM + currentAttendance.NumberOfMinTardinessPM;
+                _context.Attendance.Update(currentAttendance);
+            }
 
             var monthNow = DateTime.Now.Month;
             //var nextMonth = monthNow + 1;
@@ -136,7 +238,7 @@ namespace src.Controllers.Api
 
             if (month != monthNow || currentSalaryLedger.MidMonth != currentLedger.MidMonth)
             {
-                salaryLedger.NumberOfMinTardiness = salaryLedger.NumberOfMinTardiness + attendance.NumberOfMinTardiness;
+                salaryLedger.NumberOfMinTardiness = salaryLedger.NumberOfMinTardiness + currentAttendance.TotalNumberOfMinTardiness;
                 salaryLedger.Id = Guid.NewGuid().ToString("n").Substring(0, 30);
                 salaryLedger.DateAndTime = DateTime.Now;
                 salaryLedger.MidMonth = currentLedger.MidMonth;
@@ -229,7 +331,7 @@ namespace src.Controllers.Api
             }
             else
             {
-                currentSalaryLedger.NumberOfMinTardiness = currentSalaryLedger.NumberOfMinTardiness + attendance.NumberOfMinTardiness;
+                currentSalaryLedger.NumberOfMinTardiness = currentSalaryLedger.NumberOfMinTardiness + globalTardiness;
 
                 //currentLedger.MidMonth = currentSalaryLedger.MidMonth;
                 currentLedger.NumberOfMinTardiness = currentSalaryLedger.NumberOfMinTardiness;
@@ -322,11 +424,12 @@ namespace src.Controllers.Api
             Employees employees = _context.Employees.Where(x => x.IdNumber == idNumber).FirstOrDefault();
             SalaryLedger currentSalaryLedger = _context.SalaryLedger.Where(x => x.IdNumber == idNumber).OrderByDescending(x => x.DateAndTime).First();
             CurrentLedger currentLedger = _context.CurrentLedger.Where(x => x.IdNumber == idNumber).FirstOrDefault();
-            Attendance attendance = _context.Attendance.Where(x => x.IdNumber == idNumber && x.TimeOut == null).FirstOrDefault();
+            Attendance attendance = _context.Attendance.OrderByDescending(x => x.TimeInAM).Where(x => x.IdNumber == idNumber && x.TimeOutPM == null).FirstOrDefault();
             EmployersDeduction currentEmployersDeduction = _context.EmployersDeduction.OrderByDescending(x => x.Date).FirstOrDefault();
             var info = await _userManager.GetUserAsync(User);
             var totalTimeOut = employees.TotalTimeOut;
             employees.TotalTimeOut = totalTimeOut + 1;
+            int finalWorkTime = 0;
 
             //var checker = employees.DateTimeChecker.Value.AddHours(1);
             //if (checker > DateTime.Now)
@@ -339,14 +442,39 @@ namespace src.Controllers.Api
             //    _context.Employees.Update(employees);
             //}
 
-            attendance.TimeOut = DateTime.Now;
-            attendance.EditorTimeOut = info.FullName;
+            //attendance.TimeOutAM = DateTime.Now;
+            var afternoon = DateTime.Now;
+            afternoon = new DateTime(afternoon.Year, afternoon.Month, afternoon.Day, 16, 00, 00);
+            //if (afternoon.AddHours(1) >= afternoon)
+            if (DateTime.Now >= afternoon)
+                {
+                attendance.TimeOutPM = DateTime.Now;
 
-            TimeSpan diff = attendance.TimeOut.Value - attendance.TimeIn.Value;
-            int numberOfMinWorked = (int)diff.TotalMinutes;
-            int finalMinWorked = numberOfMinWorked - 60;
+                TimeSpan diff = attendance.TimeOutPM.Value - attendance.TimeInPM.Value;
+                int numberOfMinWorked = (int)diff.TotalMinutes;
+                int finalMinWorked = numberOfMinWorked - 60;
+                finalWorkTime = finalMinWorked;
 
-            var adjustment = Math.Abs(numberOfMinWorked - 540);
+                var adjustment = Math.Abs(numberOfMinWorked - 540);
+            }
+            else
+            {
+                attendance.TimeOutAM = DateTime.Now;
+
+                TimeSpan diff = attendance.TimeOutAM.Value - attendance.TimeInAM.Value;
+                int numberOfMinWorked = (int)diff.TotalMinutes;
+                int finalMinWorked = numberOfMinWorked - 60;
+                finalWorkTime = finalMinWorked;
+
+                var adjustment = Math.Abs(numberOfMinWorked - 540);
+            }
+            //attendance.EditorTimeOut = info.FullName;
+
+            //TimeSpan diff = attendance.TimeOutAM.Value - attendance.TimeInAM.Value;
+            //int numberOfMinWorked = (int)diff.TotalMinutes;
+            //int finalMinWorked = numberOfMinWorked - 60;
+
+            //var adjustment = Math.Abs(numberOfMinWorked - 540);
 
             DateTime start = DateTime.Now;
             start = new DateTime(start.Year, start.Month, start.Day, 08, 00, 00);
@@ -354,17 +482,17 @@ namespace src.Controllers.Api
             DateTime end = DateTime.Now;
             end = new DateTime(end.Year, end.Month, end.Day, 17, 00, 00);
 
-            if (attendance.TimeIn.Value.DayOfWeek != DayOfWeek.Sunday)
+            if (attendance.TimeInAM.Value.DayOfWeek != DayOfWeek.Sunday)
             {
-                attendance.NumberOfMinWorked = finalMinWorked;
+                attendance.NumberOfMinWorked = finalWorkTime;
             }
 
-            else if (attendance.TimeIn.Value.DayOfWeek == DayOfWeek.Sunday)
+            else if (attendance.TimeInAM.Value.DayOfWeek == DayOfWeek.Sunday)
             {
-                if (attendance.TimeIn.Value < start)
+                if (attendance.TimeInAM.Value < start)
                 {
                     DateTime timeIn = start;
-                    if (attendance.TimeOut.Value > end)
+                    if (attendance.TimeOutAM.Value > end)
                     {
                         DateTime timeOut = end;
                         TimeSpan difference = timeOut - timeIn;
@@ -372,19 +500,19 @@ namespace src.Controllers.Api
                         attendance.NumberOfMinSunday = numberOfMinSundays;
                         currentSalaryLedger.NumberOfMinSundays = currentSalaryLedger.NumberOfMinSundays + numberOfMinSundays;
                     }
-                    else if (attendance.TimeOut.Value < end)
+                    else if (attendance.TimeOutAM.Value < end)
                     {
-                        DateTime timeOut = attendance.TimeOut.Value;
+                        DateTime timeOut = attendance.TimeOutAM.Value;
                         TimeSpan difference = timeOut - timeIn;
                         int numberOfMinSundays = (int)difference.TotalMinutes;
                         attendance.NumberOfMinSunday = numberOfMinSundays;
                         currentSalaryLedger.NumberOfMinSundays = currentSalaryLedger.NumberOfMinSundays + numberOfMinSundays;
                     }
                 }
-                else if (attendance.TimeIn.Value > start)
+                else if (attendance.TimeInAM.Value > start)
                 {
-                    DateTime timeIn = attendance.TimeIn.Value;
-                    if (attendance.TimeOut.Value > end)
+                    DateTime timeIn = attendance.TimeInAM.Value;
+                    if (attendance.TimeOutAM.Value > end)
                     {
                         DateTime timeOut = end;
                         TimeSpan difference = timeOut - timeIn;
@@ -392,9 +520,9 @@ namespace src.Controllers.Api
                         attendance.NumberOfMinSunday = numberOfMinSundays;
                         currentSalaryLedger.NumberOfMinSundays = currentSalaryLedger.NumberOfMinSundays + numberOfMinSundays;
                     }
-                    else if (attendance.TimeOut.Value < end)
+                    else if (attendance.TimeOutAM.Value < end)
                     {
-                        DateTime timeOut = attendance.TimeOut.Value;
+                        DateTime timeOut = attendance.TimeOutAM.Value;
                         TimeSpan difference = timeOut - timeIn;
                         int numberOfMinSundays = (int)difference.TotalMinutes;
                         attendance.NumberOfMinSunday = numberOfMinSundays;
@@ -908,7 +1036,7 @@ namespace src.Controllers.Api
             Employees employees = _context.Employees.Where(x => x.IdNumber == idNumber).FirstOrDefault();
             SalaryLedger currentSalaryLedger = _context.SalaryLedger.Where(x => x.IdNumber == idNumber).OrderByDescending(x => x.DateAndTime).First();
             CurrentLedger currentLedger = _context.CurrentLedger.Where(x => x.IdNumber == idNumber).FirstOrDefault();
-            Attendance attendance = _context.Attendance.Where(x => x.IdNumber == idNumber && x.TimeOut == null).FirstOrDefault();
+            Attendance attendance = _context.Attendance.Where(x => x.IdNumber == idNumber && x.TimeOutAM == null).FirstOrDefault();
             var info = await _userManager.GetUserAsync(User);
             var totalTimeOut = employees.TotalTimeOut;
             employees.TotalTimeOut = totalTimeOut + 1;
@@ -924,10 +1052,10 @@ namespace src.Controllers.Api
             //    _context.Employees.Update(employees);
             //}
 
-            attendance.TimeOut = DateTime.Now;
-            attendance.EditorTimeOut = info.FullName;
+            attendance.TimeOutAM = DateTime.Now;
+            //attendance.EditorTimeOut = info.FullName;
 
-            TimeSpan diff = attendance.TimeOut.Value - attendance.TimeIn.Value;
+            TimeSpan diff = attendance.TimeOutAM.Value - attendance.TimeInAM.Value;
             int numberOfMinWorked = (int)diff.TotalMinutes;
             int finalMinWorked = numberOfMinWorked - 60;
 
@@ -939,17 +1067,17 @@ namespace src.Controllers.Api
             DateTime end = DateTime.Now;
             end = new DateTime(end.Year, end.Month, end.Day, 17, 00, 00);
 
-            if (attendance.TimeIn.Value.DayOfWeek != DayOfWeek.Sunday)
+            if (attendance.TimeInAM.Value.DayOfWeek != DayOfWeek.Sunday)
             {
                 attendance.NumberOfMinWorked = finalMinWorked;
             }
 
-            else if (attendance.TimeIn.Value.DayOfWeek == DayOfWeek.Sunday)
+            else if (attendance.TimeInAM.Value.DayOfWeek == DayOfWeek.Sunday)
             {
-                if (attendance.TimeIn.Value < start)
+                if (attendance.TimeInAM.Value < start)
                 {
                     DateTime timeIn = start;
-                    if (attendance.TimeOut.Value > end)
+                    if (attendance.TimeOutAM.Value > end)
                     {
                         DateTime timeOut = end;
                         TimeSpan difference = timeOut - timeIn;
@@ -957,19 +1085,19 @@ namespace src.Controllers.Api
                         attendance.NumberOfMinSunday = numberOfMinSundays;
                         currentSalaryLedger.NumberOfMinSundays = currentSalaryLedger.NumberOfMinSundays + numberOfMinSundays;
                     }
-                    else if (attendance.TimeOut.Value < end)
+                    else if (attendance.TimeOutAM.Value < end)
                     {
-                        DateTime timeOut = attendance.TimeOut.Value;
+                        DateTime timeOut = attendance.TimeOutAM.Value;
                         TimeSpan difference = timeOut - timeIn;
                         int numberOfMinSundays = (int)difference.TotalMinutes;
                         attendance.NumberOfMinSunday = numberOfMinSundays;
                         currentSalaryLedger.NumberOfMinSundays = currentSalaryLedger.NumberOfMinSundays + numberOfMinSundays;
                     }
                 }
-                else if (attendance.TimeIn.Value > start)
+                else if (attendance.TimeInAM.Value > start)
                 {
-                    DateTime timeIn = attendance.TimeIn.Value;
-                    if (attendance.TimeOut.Value > end)
+                    DateTime timeIn = attendance.TimeInAM.Value;
+                    if (attendance.TimeOutAM.Value > end)
                     {
                         DateTime timeOut = end;
                         TimeSpan difference = timeOut - timeIn;
@@ -977,9 +1105,9 @@ namespace src.Controllers.Api
                         attendance.NumberOfMinSunday = numberOfMinSundays;
                         currentSalaryLedger.NumberOfMinSundays = currentSalaryLedger.NumberOfMinSundays + numberOfMinSundays;
                     }
-                    else if (attendance.TimeOut.Value < end)
+                    else if (attendance.TimeOutAM.Value < end)
                     {
-                        DateTime timeOut = attendance.TimeOut.Value;
+                        DateTime timeOut = attendance.TimeOutAM.Value;
                         TimeSpan difference = timeOut - timeIn;
                         int numberOfMinSundays = (int)difference.TotalMinutes;
                         attendance.NumberOfMinSunday = numberOfMinSundays;
@@ -990,10 +1118,10 @@ namespace src.Controllers.Api
 
             var overtime = DateTime.Now;
             overtime = new DateTime(overtime.Year, overtime.Month, overtime.Day, 17, 00, 00);
-            TimeSpan solve = attendance.TimeOut.Value - overtime;
+            TimeSpan solve = attendance.TimeOutAM.Value - overtime;
             int overtimeMin = (int)solve.TotalMinutes;
 
-            if (attendance.TimeOut.Value > overtime)
+            if (attendance.TimeOutAM.Value > overtime)
             {
                 attendance.NumberOfMinOT = overtimeMin;
             }
@@ -1467,7 +1595,7 @@ namespace src.Controllers.Api
             Employees employees = _context.Employees.Where(x => x.IdNumber == idNumber).FirstOrDefault();
             SalaryLedger currentSalaryLedger = _context.SalaryLedger.Where(x => x.IdNumber == idNumber).OrderByDescending(x => x.DateAndTime).First();
             CurrentLedger currentLedger = _context.CurrentLedger.Where(x => x.IdNumber == idNumber).FirstOrDefault();
-            Attendance attendance = _context.Attendance.Where(x => x.IdNumber == idNumber && x.TimeOut == null).FirstOrDefault();
+            Attendance attendance = _context.Attendance.Where(x => x.IdNumber == idNumber && x.TimeOutAM == null).FirstOrDefault();
             var info = await _userManager.GetUserAsync(User);
             var totalTimeOut = employees.TotalTimeOut;
             employees.TotalTimeOut = totalTimeOut + 1;
@@ -1483,10 +1611,10 @@ namespace src.Controllers.Api
             //    _context.Employees.Update(employees);
             //}
 
-            attendance.TimeOut = DateTime.Now;
-            attendance.EditorTimeOut = info.FullName;
+            attendance.TimeOutAM = DateTime.Now;
+            //attendance.EditorTimeOut = info.FullName;
 
-            TimeSpan diff = attendance.TimeOut.Value - attendance.TimeIn.Value;
+            TimeSpan diff = attendance.TimeOutAM.Value - attendance.TimeInAM.Value;
             int numberOfMinWorked = (int)diff.TotalMinutes;
             int finalMinWorked = numberOfMinWorked - 60;
 
@@ -1498,17 +1626,17 @@ namespace src.Controllers.Api
             DateTime end = DateTime.Now;
             end = new DateTime(end.Year, end.Month, end.Day, 17, 00, 00);
 
-            if (attendance.TimeIn.Value.DayOfWeek != DayOfWeek.Sunday)
+            if (attendance.TimeInAM.Value.DayOfWeek != DayOfWeek.Sunday)
             {
                 attendance.NumberOfMinWorked = finalMinWorked;
             }
 
-            else if (attendance.TimeIn.Value.DayOfWeek == DayOfWeek.Sunday)
+            else if (attendance.TimeInAM.Value.DayOfWeek == DayOfWeek.Sunday)
             {
-                if (attendance.TimeIn.Value < start)
+                if (attendance.TimeInAM.Value < start)
                 {
                     DateTime timeIn = start;
-                    if (attendance.TimeOut.Value > end)
+                    if (attendance.TimeOutAM.Value > end)
                     {
                         DateTime timeOut = end;
                         TimeSpan difference = timeOut - timeIn;
@@ -1516,19 +1644,19 @@ namespace src.Controllers.Api
                         attendance.NumberOfMinSunday = numberOfMinSundays;
                         currentSalaryLedger.NumberOfMinSundays = currentSalaryLedger.NumberOfMinSundays;
                     }
-                    else if (attendance.TimeOut.Value < end)
+                    else if (attendance.TimeOutAM.Value < end)
                     {
-                        DateTime timeOut = attendance.TimeOut.Value;
+                        DateTime timeOut = attendance.TimeOutAM.Value;
                         TimeSpan difference = timeOut - timeIn;
                         int numberOfMinSundays = (int)difference.TotalMinutes;
                         attendance.NumberOfMinSunday = numberOfMinSundays;
                         currentSalaryLedger.NumberOfMinSundays = currentSalaryLedger.NumberOfMinSundays;
                     }
                 }
-                else if (attendance.TimeIn.Value > start)
+                else if (attendance.TimeInAM.Value > start)
                 {
-                    DateTime timeIn = attendance.TimeIn.Value;
-                    if (attendance.TimeOut.Value > end)
+                    DateTime timeIn = attendance.TimeInAM.Value;
+                    if (attendance.TimeOutAM.Value > end)
                     {
                         DateTime timeOut = end;
                         TimeSpan difference = timeOut - timeIn;
@@ -1536,9 +1664,9 @@ namespace src.Controllers.Api
                         attendance.NumberOfMinSunday = numberOfMinSundays;
                         currentSalaryLedger.NumberOfMinSundays = currentSalaryLedger.NumberOfMinSundays;
                     }
-                    else if (attendance.TimeOut.Value < end)
+                    else if (attendance.TimeOutAM.Value < end)
                     {
-                        DateTime timeOut = attendance.TimeOut.Value;
+                        DateTime timeOut = attendance.TimeOutAM.Value;
                         TimeSpan difference = timeOut - timeIn;
                         int numberOfMinSundays = (int)difference.TotalMinutes;
                         attendance.NumberOfMinSunday = numberOfMinSundays;
@@ -2022,7 +2150,7 @@ namespace src.Controllers.Api
             Employees employees = _context.Employees.Where(x => x.IdNumber == idNumber).FirstOrDefault();
             SalaryLedger currentSalaryLedger = _context.SalaryLedger.Where(x => x.IdNumber == idNumber).OrderByDescending(x => x.DateAndTime).First();
             CurrentLedger currentLedger = _context.CurrentLedger.Where(x => x.IdNumber == idNumber).FirstOrDefault();
-            Attendance attendance = _context.Attendance.Where(x => x.IdNumber == idNumber && x.TimeOut == null).FirstOrDefault();
+            Attendance attendance = _context.Attendance.Where(x => x.IdNumber == idNumber && x.TimeOutAM == null).FirstOrDefault();
             var info = await _userManager.GetUserAsync(User);
             var totalTimeOut = employees.TotalTimeOut;
             employees.TotalTimeOut = totalTimeOut + 1;
@@ -2038,10 +2166,10 @@ namespace src.Controllers.Api
             //    _context.Employees.Update(employees);
             //}
 
-            attendance.TimeOut = DateTime.Now;
-            attendance.EditorTimeOut = info.FullName;
+            attendance.TimeOutAM = DateTime.Now;
+            //attendance.EditorTimeOut = info.FullName;
 
-            TimeSpan diff = attendance.TimeOut.Value - attendance.TimeIn.Value;
+            TimeSpan diff = attendance.TimeOutAM.Value - attendance.TimeInAM.Value;
             int numberOfMinWorked = (int)diff.TotalMinutes;
             int finalMinWorked = numberOfMinWorked - 60;
 
@@ -2053,17 +2181,17 @@ namespace src.Controllers.Api
             DateTime end = DateTime.Now;
             end = new DateTime(end.Year, end.Month, end.Day, 17, 00, 00);
 
-            if (attendance.TimeIn.Value.DayOfWeek != DayOfWeek.Sunday)
+            if (attendance.TimeInAM.Value.DayOfWeek != DayOfWeek.Sunday)
             {
                 attendance.NumberOfMinWorked = finalMinWorked;
             }
 
-            else if (attendance.TimeIn.Value.DayOfWeek == DayOfWeek.Sunday)
+            else if (attendance.TimeInAM.Value.DayOfWeek == DayOfWeek.Sunday)
             {
-                if (attendance.TimeIn.Value < start)
+                if (attendance.TimeInAM.Value < start)
                 {
                     DateTime timeIn = start;
-                    if (attendance.TimeOut.Value > end)
+                    if (attendance.TimeOutAM.Value > end)
                     {
                         DateTime timeOut = end;
                         TimeSpan difference = timeOut - timeIn;
@@ -2071,19 +2199,19 @@ namespace src.Controllers.Api
                         attendance.NumberOfMinSunday = numberOfMinSundays;
                         currentSalaryLedger.NumberOfMinSundays = currentSalaryLedger.NumberOfMinSundays;
                     }
-                    else if (attendance.TimeOut.Value < end)
+                    else if (attendance.TimeOutAM.Value < end)
                     {
-                        DateTime timeOut = attendance.TimeOut.Value;
+                        DateTime timeOut = attendance.TimeOutAM.Value;
                         TimeSpan difference = timeOut - timeIn;
                         int numberOfMinSundays = (int)difference.TotalMinutes;
                         attendance.NumberOfMinSunday = numberOfMinSundays;
                         currentSalaryLedger.NumberOfMinSundays = currentSalaryLedger.NumberOfMinSundays;
                     }
                 }
-                else if (attendance.TimeIn.Value > start)
+                else if (attendance.TimeInAM.Value > start)
                 {
-                    DateTime timeIn = attendance.TimeIn.Value;
-                    if (attendance.TimeOut.Value > end)
+                    DateTime timeIn = attendance.TimeInAM.Value;
+                    if (attendance.TimeOutAM.Value > end)
                     {
                         DateTime timeOut = end;
                         TimeSpan difference = timeOut - timeIn;
@@ -2091,9 +2219,9 @@ namespace src.Controllers.Api
                         attendance.NumberOfMinSunday = numberOfMinSundays;
                         currentSalaryLedger.NumberOfMinSundays = currentSalaryLedger.NumberOfMinSundays;
                     }
-                    else if (attendance.TimeOut.Value < end)
+                    else if (attendance.TimeOutAM.Value < end)
                     {
-                        DateTime timeOut = attendance.TimeOut.Value;
+                        DateTime timeOut = attendance.TimeOutAM.Value;
                         TimeSpan difference = timeOut - timeIn;
                         int numberOfMinSundays = (int)difference.TotalMinutes;
                         attendance.NumberOfMinSunday = numberOfMinSundays;
@@ -2112,37 +2240,37 @@ namespace src.Controllers.Api
             var start2 = DateTime.Now;
             start2 = new DateTime(start2.Year, start2.Month, start2.Day, 08, 00, 00);
             DateTime timeIn2;
-            if (attendance.TimeIn.Value < start2)
+            if (attendance.TimeInAM.Value < start2)
             {
                 timeIn2 = start2;
-                if (attendance.TimeOut.Value > end2)
+                if (attendance.TimeOutAM.Value > end2)
                 {
                     DateTime timeOut2 = end2;
                     TimeSpan solve2 = timeOut2 - timeIn2;
                     int numberOfHrsSH = (int)solve2.TotalHours;
                     currentSalaryLedger.NumberOfHrsSH = numberOfHrsSH;
                 }
-                else if (attendance.TimeOut.Value < end2)
+                else if (attendance.TimeOutAM.Value < end2)
                 {
-                    DateTime timeOut2 = attendance.TimeOut.Value;
+                    DateTime timeOut2 = attendance.TimeOutAM.Value;
                     TimeSpan solve2 = timeOut2 - timeIn2;
                     int numberOfHrsSH = (int)solve2.TotalHours;
                     currentSalaryLedger.NumberOfHrsSH = numberOfHrsSH;
                 }
             }
-            else if (attendance.TimeIn.Value > start2)
+            else if (attendance.TimeInAM.Value > start2)
             {
-                timeIn2 = attendance.TimeIn.Value;
-                if (attendance.TimeOut.Value > end2)
+                timeIn2 = attendance.TimeInAM.Value;
+                if (attendance.TimeOutAM.Value > end2)
                 {
                     DateTime timeOut2 = end2;
                     TimeSpan solve2 = timeOut2 - timeIn2;
                     int numberOfHrsSH = (int)solve2.TotalHours;
                     currentSalaryLedger.NumberOfHrsSH = numberOfHrsSH;
                 }
-                else if (attendance.TimeOut.Value < end2)
+                else if (attendance.TimeOutAM.Value < end2)
                 {
-                    DateTime timeOut2 = attendance.TimeOut.Value;
+                    DateTime timeOut2 = attendance.TimeOutAM.Value;
                     TimeSpan solve2 = timeOut2 - timeIn2;
                     int numberOfHrsSH = (int)solve2.TotalHours;
                     currentSalaryLedger.NumberOfHrsSH = numberOfHrsSH;

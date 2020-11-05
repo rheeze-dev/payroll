@@ -15,10 +15,10 @@ $(document).ready(function () {
         "columns": [
             {
                 "data": function (data) {
-                    var d = new Date(data["timeIn"]);
+                    var d = new Date(data["timeInAM"]);
                     var output = monthNames[d.getMonth()] + " " + d.getDate() + ", " + d.getFullYear() + " - " + setClockTime(d);
-                    var spanData = "<span style = 'display:none;'> " + data["timeIn"] + "</span>";
-                    if (data["timeIn"] == null) {
+                    var spanData = "<span style = 'display:none;'> " + data["timeInAM"] + "</span>";
+                    if (data["timeInAM"] == null) {
                         output = "";
                     }
                     return spanData + output;
@@ -27,20 +27,20 @@ $(document).ready(function () {
             { "data": "idNumber" },
             { "data": "fullName" },
             
-            { "data": "editorTimeIn" },
+            //{ "data": "editorTimeIn" },
             {
                 "data": function (data) {
-                    var d = new Date(data["timeOut"]);
+                    var d = new Date(data["timeOutAM"]);
                     var output = monthNames[d.getMonth()] + " " + d.getDate() + ", " + d.getFullYear() + " - " + setClockTime(d);
-                    var spanData = "<span style = 'display:none;'> " + data["timeOut"] + "</span>";
-                    if (data["timeOut"] == null) {
+                    var spanData = "<span style = 'display:none;'> " + data["timeOutAM"] + "</span>";
+                    if (data["timeOutAM"] == null) {
                         output = "";
                     }
                     return spanData + output;
                 }
             },
-            { "data": "editorTimeOut" },
-            { "data": "numberOfMinTardiness" },
+            { "data": "editor" },
+            { "data": "totalNumberOfMinTardiness" },
             { "data": "numberOfMinOT" }
         ],
         "language": {

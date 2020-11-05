@@ -25,19 +25,29 @@ namespace src.Models
 
         public int NumberOfMinOT { get; set; }
 
-        public int NumberOfMinTardiness { get; set; }
+        public int NumberOfMinTardinessAM { get; set; }
 
-        [Display(Name = "Time in")]
-        public DateTime? TimeIn { get; set; }
+        public int NumberOfMinTardinessPM { get; set; }
 
-        [Display(Name = "Time out")]
-        public DateTime? TimeOut { get; set; }
+        public int TotalNumberOfMinTardiness { get; set; }
+
+        [Display(Name = "Time in AM")]
+        public DateTime? TimeInAM { get; set; }
+
+        [Display(Name = "Time out AM")]
+        public DateTime? TimeOutAM { get; set; }
+
+        [Display(Name = "Time in PM")]
+        public DateTime? TimeInPM { get; set; }
+
+        [Display(Name = "Time out PM")]
+        public DateTime? TimeOutPM { get; set; }
 
         [Display(Name = "Editor")]
-        public string EditorTimeIn { get; set; }
+        public string Editor { get; set; }
 
-        [Display(Name = "Editor")]
-        public string EditorTimeOut { get; set; }
+        //[Display(Name = "Editor")]
+        //public string EditorTimeOut { get; set; }
 
         public string Remarks { get; set; }
     }

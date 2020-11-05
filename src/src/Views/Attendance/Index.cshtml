@@ -32,14 +32,16 @@
                                 <table id="grid" name="grid" class="table table-striped table-bordered">
                                     <thead>
                                         <tr>
-                                            <th class="col-md-1">Time in</th>
+                                            <th class="col-md-1">Time in AM</th>
+                                            <th class="col-md-1">Time out AM</th>
                                             <th class="col-md-1">Id number</th>
                                             <th class="col-md-1">Name</th>
-                                            <th class="col-md-1">Time in editor</th>
-                                            <th class="col-md-1">Time out</th>
-                                            <th class="col-md-1">Time out editor</th>
+                                            @*<th class="col-md-1">Time in editor</th>*@
+                                            <th class="col-md-1">Time in PM</th>
+                                            <th class="col-md-1">Time out PM</th>
                                             <th class="col-md-1">Tardiness</th>
                                             <th class="col-md-1">Overtime</th>
+                                            <th class="col-md-1">Editor</th>
                                             <th class="col-md-1">Action</th>
                                         </tr>
                                     </thead>
@@ -71,9 +73,9 @@ else if (appUser.Role == "Admin" || appUser.Role == "Employee")
                                             <th class="col-md-1">Time in</th>
                                             <th class="col-md-1">Id number</th>
                                             <th class="col-md-1">Name</th>
-                                            <th class="col-md-1">Time in editor</th>
+                                            @*<th class="col-md-1">Time in editor</th>*@
                                             <th class="col-md-1">Time out</th>
-                                            <th class="col-md-1">Time out editor</th>
+                                            <th class="col-md-1">Editor</th>
                                             <th class="col-md-1">Tardiness</th>
                                             <th class="col-md-1">Overtime</th>
                                             @*<th class="col-md-1">Action</th>*@
